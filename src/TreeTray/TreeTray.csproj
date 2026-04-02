@@ -7,7 +7,8 @@
     <LangVersion>latest</LangVersion>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <NuGetAudit>false</NuGetAudit>
-    <RestoreAdditionalProjectSources>$([System.IO.Path]::Combine($([System.Environment]::GetFolderPath(System.Environment+SpecialFolder.UserProfile)), '.nuget', 'packages'))</RestoreAdditionalProjectSources>
+    <UserNuGetPackages>$([System.IO.Path]::Combine($([System.Environment]::GetFolderPath(System.Environment+SpecialFolder.UserProfile)), '.nuget', 'packages'))</UserNuGetPackages>
+    <RestoreAdditionalProjectSources Condition="Exists('$(UserNuGetPackages)')">$(UserNuGetPackages)</RestoreAdditionalProjectSources>
     <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
     <RestorePackagesPath>$(MSBuildThisFileDirectory)..\..\.nuget\packages</RestorePackagesPath>
     <UsedAvaloniaProducts></UsedAvaloniaProducts>
