@@ -1,0 +1,177 @@
+<Window
+    x:Class="TreeTray.Views.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:colorPicker="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.ColorPicker"
+    xmlns:vm="using:TreeTray.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:MainWindowViewModel"
+    Width="1380"
+    Height="900"
+    MinWidth="1120"
+    MinHeight="760"
+    Closing="OnWindowClosing"
+    SystemDecorations="Full"
+    Title="{Binding WindowTitle}">
+  <Grid Margin="20" ColumnDefinitions="*,400" ColumnSpacing="18">
+    <Border Classes="card" Padding="18">
+      <Grid RowDefinitions="Auto,*">
+        <Grid Margin="0,0,0,14" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+          <StackPanel Grid.Column="0" Spacing="4">
+            <TextBlock Classes="section-title" Text="Launchers" />
+            <TextBlock Classes="meta-label" MaxWidth="700" Text="{Binding LaunchersDirectory}" TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+
+          <Button
+              Grid.Column="1"
+              Classes="toolbar"
+              Click="OnExpandAllLaunchersClick"
+              HorizontalAlignment="Right"
+              Padding="14,8"
+              VerticalAlignment="Top">
+            Expand all
+          </Button>
+
+          <Button
+              Grid.Column="2"
+              Classes="toolbar"
+              Click="OnCollapseAllLaunchersClick"
+              HorizontalAlignment="Right"
+              Padding="14,8"
+              VerticalAlignment="Top">
+            Collapse all
+          </Button>
+        </Grid>
+
+        <Grid Grid.Row="1">
+          <TreeView
+              x:Name="LaunchersTreeView"
+              DoubleTapped="OnLaunchersTreeViewDoubleTapped"
+              ItemsSource="{Binding RootItems}"
+              KeyDown="OnLaunchersTreeViewKeyDown"
+              SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
+            <TreeView.ItemTemplate>
+              <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="vm:LauncherItemViewModel">
+                <Border Margin="0,0,0,8" Padding="10,8">
+                  <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Background="#EEF2E7" CornerRadius="10" Height="34" Padding="8" VerticalAlignment="Center" Width="34">
+                      <Image Height="18" Source="{Binding Icon}" Stretch="Uniform" Width="18" />
+                    </Border>
+
+                    <TextBlock FontSize="14" FontWeight="SemiBold" Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Border>
+              </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+          </TreeView>
+
+          <Border Background="#FBFBF8" Classes="card" IsVisible="{Binding HasNoEntries}" Padding="18">
+            <TextBlock HorizontalAlignment="Center" Opacity="0.75" Text="No launcher items are currently available in the configured folder." TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" />
+          </Border>
+        </Grid>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto" RowSpacing="18">
+      <Border Classes="card" Padding="18">
+        <Border.Background>
+          <LinearGradientBrush EndPoint="1,1" StartPoint="0,0">
+            <GradientStop Color="#E5F4E6" Offset="0" />
+            <GradientStop Color="#F8E7C8" Offset="1" />
+          </LinearGradientBrush>
+        </Border.Background>
+
+        <StackPanel Spacing="6">
+          <TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding HeaderTitle}" />
+          <TextBlock FontSize="12" MaxWidth="360" Opacity="0.82" Text="Launcher overview and runtime behavior controls for the active configuration." TextWrapping="Wrap" />
+          <TextBlock Classes="meta-value" Text="{Binding StatusText}" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" Grid.Row="1" Padding="18">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="14">
+          <TextBlock Classes="section-title" Text="Runtime Settings" />
+          <TextBlock Classes="meta-label" Text="Changes are saved and applied immediately. Leave the glyph empty to use the default application icon." TextWrapping="Wrap" />
+
+          <CheckBox Content="Enable tray or menu bar icon" IsChecked="{Binding IsTrayIconEnabled, Mode=TwoWay}" />
+          <CheckBox Content="Start with operating system" IsChecked="{Binding StartWithOperatingSystem, Mode=TwoWay}" />
+          <CheckBox
+              Content="Invert tray or menu bar left and right click actions"
+              IsChecked="{Binding InvertTrayIconMouseButtons, Mode=TwoWay}"
+              IsVisible="{Binding SupportsTrayIconMouseButtonInversion}" />
+
+          <Border Background="#F6F7F2" CornerRadius="12" Padding="14">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="section-title" Text="Tray Appearance" />
+
+              <StackPanel Spacing="4">
+                <TextBlock Classes="meta-label" Text="Tray tooltip text" />
+                <TextBox Text="{Binding TrayToolTipText, Mode=TwoWay}" Watermark="Work shortcuts" />
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <TextBlock Classes="meta-label" Text="Tray icon glyph" />
+                <TextBox Text="{Binding TrayIconGlyph, Mode=TwoWay}" Watermark="W" />
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <TextBlock Classes="meta-label" Text="Tray glyph foreground color" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <TextBox Grid.Column="0" Text="{Binding TrayIconForegroundColor, Mode=TwoWay}" Watermark="#FFFFFF" />
+                  <colorPicker:ColorPicker
+                      Grid.Column="1"
+                      Width="52"
+                      HorizontalAlignment="Right"
+                      Color="{Binding TrayIconForegroundColorValue, Mode=TwoWay}"
+                      IsAlphaEnabled="False"
+                      IsAlphaVisible="False"
+                      IsColorModelVisible="False"
+                      IsColorPreviewVisible="True" />
+                </Grid>
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <TextBlock Classes="meta-label" Text="Tray glyph background color" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <TextBox Grid.Column="0" Text="{Binding TrayIconBackgroundColor, Mode=TwoWay}" Watermark="#2F6FED" />
+                  <colorPicker:ColorPicker
+                      Grid.Column="1"
+                      Width="52"
+                      HorizontalAlignment="Right"
+                      Color="{Binding TrayIconBackgroundColorValue, Mode=TwoWay}"
+                      IsAlphaEnabled="False"
+                      IsAlphaVisible="False"
+                      IsColorModelVisible="False"
+                      IsColorPreviewVisible="True" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+        </ScrollViewer>
+      </Border>
+
+      <Border Classes="card" Grid.Row="2" Padding="18">
+        <StackPanel Spacing="10">
+          <Button Classes="toolbar" Command="{Binding ReloadCommand}" HorizontalAlignment="Stretch" Margin="0">Reload launchers</Button>
+          <Button Classes="toolbar" Command="{Binding LaunchSelectedCommand}" HorizontalAlignment="Stretch" Margin="0">Launch selected</Button>
+          <Button Classes="toolbar" Command="{Binding OpenLaunchersFolderCommand}" HorizontalAlignment="Stretch" Margin="0">Open launchers folder</Button>
+          <Button Classes="toolbar" Command="{Binding OpenConfigurationFolderCommand}" HorizontalAlignment="Stretch" Margin="0">Open configuration folder</Button>
+          <Button Classes="toolbar" Command="{Binding ExitCommand}" HorizontalAlignment="Stretch" Margin="0">Exit</Button>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <Border Background="#A6F4F4EE" Grid.ColumnSpan="2" IsVisible="{Binding IsLoading}">
+      <Border Classes="card" HorizontalAlignment="Center" MaxWidth="360" Padding="24" VerticalAlignment="Center">
+        <StackPanel Spacing="14">
+          <TextBlock FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" Text="Loading launchers..." TextAlignment="Center" />
+          <ProgressBar Height="10" IsIndeterminate="True" />
+          <TextBlock Classes="meta-label" HorizontalAlignment="Center" MaxWidth="280" Text="TreeTray is still indexing the configured launcher directory. Please wait a moment." TextAlignment="Center" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+    </Border>
+  </Grid>
+</Window>
