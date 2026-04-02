@@ -1,0 +1,60 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            artifact-name: TreeTray-win.zip
+            build-args: -c Release -r win-x64 --self-contained
+          - os: ubuntu-latest
+            artifact-name: TreeTray-linux.zip
+            build-args: -c Release -r linux-x64 --self-contained
+          - os: macos-latest
+            artifact-name: TreeTray-macos.zip
+            build-args: -c Release -r osx-x64 --self-contained
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build ${{ matrix.build-args }}
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Publish
+        run: dotnet publish ${{ matrix.build-args }} -o ./publish
+
+      - name: Create archive (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          Compress-Archive -Path ./publish -DestinationPath ${{ matrix.artifact-name }}
+
+      - name: Create archive (Unix)
+        if: runner.os != 'Windows'
+        run: zip -r ${{ matrix.artifact-name }} ./publish
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ matrix.artifact-name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
