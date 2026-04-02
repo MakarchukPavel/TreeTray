@@ -34,13 +34,13 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build ${{ matrix.build-args }}
+        run: dotnet build src/TreeTray/TreeTray.csproj ${{ matrix.build-args }}
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test src/TreeTray/TreeTray.csproj --no-build --verbosity normal
 
       - name: Publish
-        run: dotnet publish ${{ matrix.build-args }} -o ./publish
+        run: dotnet publish src/TreeTray/TreeTray.csproj ${{ matrix.build-args }} -o ./publish
 
       - name: Create archive (Windows)
         if: runner.os == 'Windows'
