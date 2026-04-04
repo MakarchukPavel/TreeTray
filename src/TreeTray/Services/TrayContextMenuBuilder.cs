@@ -1,5 +1,6 @@
 #region Class: TrayContextMenuBuilder
 
+using Avalonia.Controls.Primitives;
 using Avalonia.VisualTree;
 
 namespace TreeTray.Services;
@@ -25,6 +26,8 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 	#region Constants: Private
 
 	private const string User32LibraryName = "user32.dll";
+
+	private const double SubmenuOverlap = 8;
 
 	#endregion
 
@@ -78,6 +81,8 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 
 		if (entry.Children.Count > 0)
 		{
+			item.SubmenuOpened += (_, _) => AdjustSubmenuPopupOffset(item);
+
 			var children = new List<object>();
 			AddLauncherItems(children, entry.Children, launchAction, showNativeContextMenuAction);
 			item.ItemsSource = children;
@@ -108,6 +113,29 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 
 		var sourceMenuItem = visual as MenuItem ?? visual.FindAncestorOfType<MenuItem>();
 		return ReferenceEquals(sourceMenuItem, item);
+	}
+
+	private static void AdjustSubmenuPopupOffset(MenuItem item)
+	{
+		Dispatcher.UIThread.Post(
+			() =>
+			{
+				var popup = item
+					.GetVisualDescendants()
+					.OfType<Popup>()
+					.FirstOrDefault(candidate => candidate.IsOpen && candidate.Child is not null);
+				if (popup?.Child is not Visual popupChild)
+				{
+					return;
+				}
+
+				var popupScreenPoint = popupChild.PointToScreen(new Point());
+				var itemScreenPoint = item.PointToScreen(new Point());
+				popup.HorizontalOffset = popupScreenPoint.X >= itemScreenPoint.X
+					? -SubmenuOverlap
+					: SubmenuOverlap;
+			},
+			DispatcherPriority.Input);
 	}
 
 	private static void OnLauncherItemPointerPressed(
