@@ -26,6 +26,8 @@ public sealed class ApplicationController : IApplicationController
 
 	private readonly ITrayMenuBuilder _trayMenuBuilder;
 
+	private readonly IUserNotificationService _userNotificationService;
+
 	private readonly IWindowsTrayIconService _windowsTrayIconService;
 
 	private IClassicDesktopStyleApplicationLifetime? _desktopLifetime;
@@ -55,6 +57,7 @@ public sealed class ApplicationController : IApplicationController
 		IStartupRegistrationService startupRegistrationService,
 		ITrayAppearanceService trayAppearanceService,
 		ITrayMenuBuilder trayMenuBuilder,
+		IUserNotificationService userNotificationService,
 		IWindowsTrayIconService windowsTrayIconService)
 	{
 		_configurationService = configurationService;
@@ -67,6 +70,7 @@ public sealed class ApplicationController : IApplicationController
 		_startupRegistrationService = startupRegistrationService;
 		_trayAppearanceService = trayAppearanceService;
 		_trayMenuBuilder = trayMenuBuilder;
+		_userNotificationService = userNotificationService;
 		_windowsTrayIconService = windowsTrayIconService;
 	}
 
@@ -378,7 +382,14 @@ public sealed class ApplicationController : IApplicationController
 
 	public void Launch(LauncherEntry entry)
 	{
-		_launcherExecutionService.Launch(entry);
+		try
+		{
+			_launcherExecutionService.Launch(entry);
+		}
+		catch (LauncherExecutionException exception)
+		{
+			_userNotificationService.ShowError("Launch failed", exception.UserMessage);
+		}
 	}
 
 	public void OpenConfigurationDirectory()

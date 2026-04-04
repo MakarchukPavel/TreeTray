@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
 		services.AddSingleton<IPlatformLauncherResolver, Services.PlatformLauncherResolver>();
 		services.AddSingleton<ILauncherCatalogService, Services.LauncherCatalogService>();
 		services.AddSingleton<ILauncherExecutionService, Services.LauncherExecutionService>();
+		services.AddSingleton<IUserNotificationService, Services.UserNotificationService>();
 		services.AddSingleton<IStartupRegistrationService, Services.StartupRegistrationService>();
 		services.AddSingleton<IIconService, Services.IconService>();
 		services.AddSingleton<ITrayAppearanceService, Services.TrayAppearanceService>();
