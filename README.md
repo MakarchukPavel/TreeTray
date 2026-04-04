@@ -15,6 +15,20 @@ TreeTray is a cross-platform Avalonia application that turns a folder of launche
 - Can register itself to start automatically with the operating system.
 - Creates an XML configuration file with inline English documentation comments.
 
+## Demo
+
+### Toolbar Tree Menu
+
+![Toolbar tree menu](docs/demo/toolbar-tree-menu.gif)
+
+### Opening a Context Menu on a File or Folder
+
+![Opening a context menu on a file or folder](docs/demo/context-menu-file-or-folder.gif)
+
+### Main Window
+
+![Main window](docs/demo/main-window.gif)
+
 ## Supported Launcher Types
 
 ### Windows
