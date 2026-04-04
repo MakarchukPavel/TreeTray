@@ -1,7 +1,5 @@
 #region Class: TrayPopupWindow
 
-using Avalonia.VisualTree;
-
 namespace TreeTray.Views;
 
 public sealed class TrayPopupWindow : Window
@@ -53,7 +51,6 @@ public sealed class TrayPopupWindow : Window
 		Topmost = true;
 		Width = 1;
 
-		_contextMenu.Opened += OnContextMenuOpened;
 		Opened += OnOpened;
 	}
 
@@ -67,14 +64,8 @@ public sealed class TrayPopupWindow : Window
 
 	private void OnContextMenuClosed(object? sender, RoutedEventArgs eventArgs)
 	{
-		_contextMenu.Opened -= OnContextMenuOpened;
 		_contextMenu.Closed -= OnContextMenuClosed;
 		Close();
-	}
-
-	private void OnContextMenuOpened(object? sender, EventArgs eventArgs)
-	{
-		Dispatcher.UIThread.Post(SynchronizeSelectionWithCursor, DispatcherPriority.Input);
 	}
 
 	private void OnOpened(object? sender, EventArgs eventArgs)
@@ -83,32 +74,6 @@ public sealed class TrayPopupWindow : Window
 		_contextMenu.Closed += OnContextMenuClosed;
 		_contextMenu.Placement = PlacementMode.BottomEdgeAlignedLeft;
 		_contextMenu.Open(_anchor);
-	}
-
-	private void SynchronizeSelectionWithCursor()
-	{
-		if (!OperatingSystem.IsWindows()
-			|| !GetCursorPos(out var cursorPosition))
-		{
-			return;
-		}
-
-		var topLevel = TopLevel.GetTopLevel(_contextMenu);
-		if (topLevel is null)
-		{
-			return;
-		}
-
-		var cursorClientPoint = topLevel.PointToClient(new PixelPoint(cursorPosition.X, cursorPosition.Y));
-		var visual = topLevel.GetVisualAt(cursorClientPoint);
-		var menuItem = visual as MenuItem ?? visual?.FindAncestorOfType<MenuItem>();
-		if (menuItem is null || !menuItem.IsEffectivelyEnabled)
-		{
-			return;
-		}
-
-		menuItem.IsSelected = true;
-		menuItem.Focus();
 	}
 
 	#endregion
