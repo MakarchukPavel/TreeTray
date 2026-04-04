@@ -46,9 +46,18 @@ public sealed class TrayPopupMenuService : ITrayPopupMenuService
 
 	private void ShowContextMenu(LauncherEntry entry, PixelPoint screenPosition)
 	{
-		Hide();
 		Dispatcher.UIThread.Post(
-			() => _platformContextMenuService.ShowContextMenu(entry.SourcePath, screenPosition),
+			() =>
+			{
+				try
+				{
+					_platformContextMenuService.ShowContextMenu(entry.SourcePath, screenPosition);
+				}
+				finally
+				{
+					Hide();
+				}
+			},
 			DispatcherPriority.Background);
 	}
 
