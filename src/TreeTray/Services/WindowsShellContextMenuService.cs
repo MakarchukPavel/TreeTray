@@ -621,7 +621,6 @@ public sealed class WindowsShellContextMenuService : IWindowsShellContextMenuSer
 			_activeContextMenu3 = contextMenuObject as IContextMenu3;
 
 			var resolvedScreenPosition = ResolveScreenPosition(screenPosition);
-			SetForegroundWindow(_windowHandle);
 			var selectedCommandId = TrackPopupMenuEx(
 				popupMenuHandle,
 				TrackPopupMenuFlags.ReturnCommand | TrackPopupMenuFlags.RightButton,
