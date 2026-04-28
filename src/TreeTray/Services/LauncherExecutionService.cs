@@ -51,6 +51,21 @@ public sealed class LauncherExecutionService : ILauncherExecutionService
 			or Win32Exception { NativeErrorCode: 2 or 3 };
 	}
 
+	internal static void EnsureLaunchStarted(Process? process, LaunchCommand command)
+	{
+		if (process is not null)
+		{
+			return;
+		}
+
+		if (command.UseShellExecute)
+		{
+			return;
+		}
+
+		throw new InvalidOperationException($"Failed to launch '{command.FileName}'.");
+	}
+
 	private static void RunCommand(LaunchCommand command)
 	{
 		var processStartInfo = new ProcessStartInfo
@@ -75,10 +90,7 @@ public sealed class LauncherExecutionService : ILauncherExecutionService
 			}
 		}
 
-		if (Process.Start(processStartInfo) is null)
-		{
-			throw new InvalidOperationException($"Failed to launch '{command.FileName}'.");
-		}
+		EnsureLaunchStarted(Process.Start(processStartInfo), command);
 	}
 
 	private static LaunchCommand ResolveOpenDirectoryCommand(string directoryPath)
