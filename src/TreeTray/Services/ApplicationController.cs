@@ -114,6 +114,7 @@ public sealed class ApplicationController : IApplicationController
 		{
 			EnableTaskbarDockIcon = configuration.EnableTaskbarDockIcon,
 			EnableTrayIcon = configuration.EnableTrayIcon,
+			EnableCtrlLeftClickToLaunchFolderChildren = configuration.EnableCtrlLeftClickToLaunchFolderChildren,
 			InvertTrayIconMouseButtons = configuration.InvertTrayIconMouseButtons,
 			LaunchersDirectory = configuration.LaunchersDirectory,
 			StartWithOperatingSystem = configuration.StartWithOperatingSystem,
@@ -180,6 +181,7 @@ public sealed class ApplicationController : IApplicationController
 				Snapshot,
 				_isLoading,
 				Launch,
+				LaunchFolderChildren,
 				ShowMainWindow);
 			return;
 		}
@@ -385,6 +387,23 @@ public sealed class ApplicationController : IApplicationController
 		try
 		{
 			_launcherExecutionService.Launch(entry);
+		}
+		catch (LauncherExecutionException exception)
+		{
+			_userNotificationService.ShowError("Launch failed", exception.UserMessage);
+		}
+	}
+
+	public void LaunchFolderChildren(LauncherEntry folderEntry)
+	{
+		if (!Configuration.EnableCtrlLeftClickToLaunchFolderChildren)
+		{
+			return;
+		}
+
+		try
+		{
+			_launcherExecutionService.LaunchFolderChildren(folderEntry);
 		}
 		catch (LauncherExecutionException exception)
 		{

@@ -9,6 +9,7 @@ public interface ITrayContextMenuBuilder
 	ContextMenu Build(
 		LauncherSnapshot snapshot,
 		Action<LauncherEntry> launchAction,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		Action<LauncherEntry, PixelPoint> showNativeContextMenuAction);
 
 	#endregion

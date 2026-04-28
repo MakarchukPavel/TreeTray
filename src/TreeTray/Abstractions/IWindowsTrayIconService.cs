@@ -11,6 +11,7 @@ public interface IWindowsTrayIconService
 		LauncherSnapshot snapshot,
 		bool isLoading,
 		Action<LauncherEntry> launchAction,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		Action openLauncherAction);
 
 	void Remove();

@@ -122,6 +122,16 @@ public sealed class LauncherExecutionService : ILauncherExecutionService
 		}
 	}
 
+	public void LaunchFolderChildren(LauncherEntry folderEntry)
+	{
+		ArgumentNullException.ThrowIfNull(folderEntry);
+
+		foreach (var childEntry in LauncherEntryLaunchBatchResolver.GetDirectLaunchableChildren(folderEntry))
+		{
+			Launch(childEntry);
+		}
+	}
+
 	public void OpenDirectory(string directoryPath)
 	{
 		ArgumentNullException.ThrowIfNull(directoryPath);

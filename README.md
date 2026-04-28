@@ -12,6 +12,7 @@ TreeTray is a cross-platform Avalonia application that turns a folder of launche
   - a menu bar item on macOS,
   - a launcher window that can appear in the taskbar or Dock.
 - Starts target applications when a launcher entry is selected.
+- Can launch all direct child launchers from a folder with `Ctrl + left click` when the feature is enabled.
 - Can register itself to start automatically with the operating system.
 - Creates an XML configuration file with inline English documentation comments.
 
@@ -106,6 +107,13 @@ Tray appearance:
 
 These values can be edited at runtime from the main window in the `Runtime Settings` section.
 
+Folder batch launch behavior:
+
+- `EnableCtrlLeftClickToLaunchFolderChildren` enables a hidden productivity shortcut for folders.
+- When `true`, holding `Ctrl` while left-clicking a folder in the launcher window or in the Windows tray popup launches all direct child launchers in that folder.
+- Launchers inside nested subfolders are not started by this gesture.
+- The setting is enabled by default and can be changed from the main window in the `Runtime Settings` section.
+
 Tray click behavior:
 
 - `InvertTrayIconMouseButtons` changes the tray icon or menu bar click behavior on Windows and macOS.
@@ -125,6 +133,8 @@ Example:
   <EnableTrayIcon>true</EnableTrayIcon>
   <!-- When true, TreeTray registers itself to start automatically after sign-in. -->
   <StartWithOperatingSystem>false</StartWithOperatingSystem>
+  <!-- When true, holding Ctrl while left-clicking a folder launches all direct child launchers from that folder. -->
+  <EnableCtrlLeftClickToLaunchFolderChildren>true</EnableCtrlLeftClickToLaunchFolderChildren>
   <!-- Optional tray or menu bar click inversion on Windows and macOS. -->
   <InvertTrayIconMouseButtons>false</InvertTrayIconMouseButtons>
   <!-- Optional custom tray glyph. -->

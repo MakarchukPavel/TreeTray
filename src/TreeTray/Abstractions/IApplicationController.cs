@@ -32,6 +32,8 @@ public interface IApplicationController
 
 	void Launch(LauncherEntry entry);
 
+	void LaunchFolderChildren(LauncherEntry folderEntry);
+
 	void OpenConfigurationDirectory();
 
 	void OpenLaunchersDirectory();

@@ -198,6 +198,8 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 
 	private Action<LauncherEntry>? _launchAction;
 
+	private Action<LauncherEntry>? _launchFolderChildrenAction;
+
 	private Thread? _messageLoopThread;
 
 	private Action? _openLauncherAction;
@@ -538,6 +540,7 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		{
 			EnableTaskbarDockIcon = configuration.EnableTaskbarDockIcon,
 			EnableTrayIcon = configuration.EnableTrayIcon,
+			EnableCtrlLeftClickToLaunchFolderChildren = configuration.EnableCtrlLeftClickToLaunchFolderChildren,
 			InvertTrayIconMouseButtons = configuration.InvertTrayIconMouseButtons,
 			LaunchersDirectory = configuration.LaunchersDirectory,
 			StartWithOperatingSystem = configuration.StartWithOperatingSystem,
@@ -646,6 +649,7 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		_trayPopupMenuService.Show(
 			_snapshot,
 			_launchAction ?? (_ => { }),
+			_launchFolderChildrenAction ?? (_ => { }),
 			screenPosition);
 	}
 
@@ -662,6 +666,7 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		LauncherSnapshot snapshot,
 		bool isLoading,
 		Action<LauncherEntry> launchAction,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		Action openLauncherAction)
 	{
 		if (!OperatingSystem.IsWindows())
@@ -679,6 +684,7 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		_isLoading = isLoading;
 		_configuration = CloneConfiguration(configuration);
 		_launchAction = launchAction;
+		_launchFolderChildrenAction = launchFolderChildrenAction;
 		_openLauncherAction = openLauncherAction;
 
 		EnsureMessageLoopThread();

@@ -20,6 +20,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
 	private bool _isLoading;
 
+	private bool _enableCtrlLeftClickToLaunchFolderChildren;
+
 	private bool _invertTrayIconMouseButtons;
 
 	private string _launchersDirectory = string.Empty;
@@ -120,6 +122,20 @@ public sealed class MainWindowViewModel : ViewModelBase
 		set
 		{
 			if (!SetProperty(ref _invertTrayIconMouseButtons, value))
+			{
+				return;
+			}
+
+			PersistRuntimeSettings();
+		}
+	}
+
+	public bool EnableCtrlLeftClickToLaunchFolderChildren
+	{
+		get => _enableCtrlLeftClickToLaunchFolderChildren;
+		set
+		{
+			if (!SetProperty(ref _enableCtrlLeftClickToLaunchFolderChildren, value))
 			{
 				return;
 			}
@@ -355,6 +371,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 		_applicationController.UpdateConfiguration(new TreeTrayConfiguration
 		{
 			EnableTaskbarDockIcon = !IsTrayIconEnabled,
+			EnableCtrlLeftClickToLaunchFolderChildren = EnableCtrlLeftClickToLaunchFolderChildren,
 			EnableTrayIcon = IsTrayIconEnabled,
 			InvertTrayIconMouseButtons = InvertTrayIconMouseButtons,
 			LaunchersDirectory = _applicationController.Configuration.LaunchersDirectory,
@@ -384,6 +401,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 			LaunchersDirectory = _applicationController.Configuration.LaunchersDirectory;
 			IsTrayIconEnabled = _applicationController.Configuration.EnableTrayIcon;
 			IsTaskbarDockIconEnabled = _applicationController.Configuration.EnableTaskbarDockIcon;
+			EnableCtrlLeftClickToLaunchFolderChildren = _applicationController.Configuration.EnableCtrlLeftClickToLaunchFolderChildren;
 			InvertTrayIconMouseButtons = _applicationController.Configuration.InvertTrayIconMouseButtons;
 			StartWithOperatingSystem = _applicationController.Configuration.StartWithOperatingSystem;
 			TrayIconGlyph = _applicationController.Configuration.TrayIconGlyph;

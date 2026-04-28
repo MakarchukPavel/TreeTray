@@ -56,17 +56,19 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 		IList<object> items,
 		IEnumerable<LauncherEntry> entries,
 		Action<LauncherEntry> launchAction,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		Action<LauncherEntry, PixelPoint> showNativeContextMenuAction)
 	{
 		foreach (var entry in entries)
 		{
-			items.Add(CreateLauncherItem(entry, launchAction, showNativeContextMenuAction));
+			items.Add(CreateLauncherItem(entry, launchAction, launchFolderChildrenAction, showNativeContextMenuAction));
 		}
 	}
 
 	private MenuItem CreateLauncherItem(
 		LauncherEntry entry,
 		Action<LauncherEntry> launchAction,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		Action<LauncherEntry, PixelPoint> showNativeContextMenuAction)
 	{
 		var item = new MenuItem
@@ -76,7 +78,7 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 		};
 		item.AddHandler(
 			InputElement.PointerPressedEvent,
-			(_, eventArgs) => OnLauncherItemPointerPressed(item, entry, showNativeContextMenuAction, eventArgs),
+			(_, eventArgs) => OnLauncherItemPointerPressed(item, entry, launchFolderChildrenAction, showNativeContextMenuAction, eventArgs),
 			RoutingStrategies.Bubble);
 
 		if (entry.Children.Count > 0)
@@ -84,7 +86,7 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 			item.SubmenuOpened += (_, _) => AdjustSubmenuPopupOffset(item);
 
 			var children = new List<object>();
-			AddLauncherItems(children, entry.Children, launchAction, showNativeContextMenuAction);
+			AddLauncherItems(children, entry.Children, launchAction, launchFolderChildrenAction, showNativeContextMenuAction);
 			item.ItemsSource = children;
 			return item;
 		}
@@ -141,10 +143,24 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 	private static void OnLauncherItemPointerPressed(
 		MenuItem item,
 		LauncherEntry entry,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		Action<LauncherEntry, PixelPoint> showNativeContextMenuAction,
 		PointerPressedEventArgs eventArgs)
 	{
 		var currentPoint = eventArgs.GetCurrentPoint(null);
+		var isLeftClick = currentPoint.Properties.IsLeftButtonPressed
+			|| currentPoint.Properties.PointerUpdateKind == PointerUpdateKind.LeftButtonPressed;
+		if (isLeftClick
+			&& eventArgs.KeyModifiers.HasFlag(KeyModifiers.Control)
+			&& entry.EntryType == LauncherEntryType.Folder
+			&& entry.Children.Count > 0
+			&& IsDirectMenuItemSource(item, eventArgs))
+		{
+			eventArgs.Handled = true;
+			launchFolderChildrenAction(entry);
+			return;
+		}
+
 		if (!currentPoint.Properties.IsRightButtonPressed
 			&& currentPoint.Properties.PointerUpdateKind != PointerUpdateKind.RightButtonPressed)
 		{
@@ -172,6 +188,7 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 	public ContextMenu Build(
 		LauncherSnapshot snapshot,
 		Action<LauncherEntry> launchAction,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		Action<LauncherEntry, PixelPoint> showNativeContextMenuAction)
 	{
 		var items = new List<object>();
@@ -186,7 +203,7 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 		}
 		else
 		{
-			AddLauncherItems(items, snapshot.RootEntries, launchAction, showNativeContextMenuAction);
+			AddLauncherItems(items, snapshot.RootEntries, launchAction, launchFolderChildrenAction, showNativeContextMenuAction);
 		}
 
 		return new ContextMenu

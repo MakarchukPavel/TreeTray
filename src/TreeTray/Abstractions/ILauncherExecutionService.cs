@@ -8,6 +8,8 @@ public interface ILauncherExecutionService
 
 	void Launch(LauncherEntry entry);
 
+	void LaunchFolderChildren(LauncherEntry folderEntry);
+
 	void OpenDirectory(string directoryPath);
 
 	#endregion

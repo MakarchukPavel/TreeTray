@@ -17,6 +17,7 @@ public interface ITrayPopupMenuService
 	void Show(
 		LauncherSnapshot snapshot,
 		Action<LauncherEntry> launchAction,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		PixelPoint screenPosition);
 
 	void ShowLoading(PixelPoint screenPosition);

@@ -80,6 +80,7 @@ public sealed class TrayPopupMenuService : ITrayPopupMenuService
 	public void Show(
 		LauncherSnapshot snapshot,
 		Action<LauncherEntry> launchAction,
+		Action<LauncherEntry> launchFolderChildrenAction,
 		PixelPoint screenPosition)
 	{
 		if (_popupWindow is Views.TrayLoadingWindow)
@@ -97,6 +98,11 @@ public sealed class TrayPopupMenuService : ITrayPopupMenuService
 			entry =>
 			{
 				launchAction(entry);
+				Hide();
+			},
+			entry =>
+			{
+				launchFolderChildrenAction(entry);
 				Hide();
 			},
 			ShowContextMenu);

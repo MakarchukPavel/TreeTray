@@ -13,6 +13,7 @@ The application is organized around a small set of focused services and view mod
 - `LauncherCatalogService` scans the configured launcher directory and builds the hierarchical launcher tree.
 - `PlatformLauncherResolver` converts files and bundles into launch commands for Windows, macOS, and Linux.
 - `LauncherExecutionService` starts launcher targets and opens supporting directories.
+- `LauncherEntryLaunchBatchResolver` selects direct child launcher entries for folder batch launch scenarios without traversing nested subfolders.
 - `IconService` resolves application, folder, launcher, Windows shell, and macOS native file icons.
 - `TrayAppearanceService` builds tray icon assets, tooltip text, and custom glyph-based tray visuals.
 - `WindowsTrayIconService` hosts the native Windows tray icon and its click behavior.
@@ -59,6 +60,7 @@ The view model layer exposes bindable state for Avalonia XAML and keeps view cod
 - If `EnableTrayIcon` is `false`, TreeTray opens the main launcher window on startup and keeps it visible in the Windows taskbar, the macOS Dock, or the Linux task switcher.
 - The launcher catalog is loaded asynchronously. During startup, the shell surface is created first and the launcher snapshot is populated in the background.
 - The main window can be opened from the tray or menu bar and can be hidden again without shutting down the process when tray mode is enabled.
+- When `EnableCtrlLeftClickToLaunchFolderChildren` is enabled, the launcher window and the Windows tray popup also support a folder batch-launch gesture that starts only direct child launchers.
 
 ## Platform Integration
 

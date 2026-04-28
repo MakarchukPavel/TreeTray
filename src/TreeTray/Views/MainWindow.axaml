@@ -97,6 +97,9 @@
           <CheckBox Content="Enable tray or menu bar icon" IsChecked="{Binding IsTrayIconEnabled, Mode=TwoWay}" />
           <CheckBox Content="Start with operating system" IsChecked="{Binding StartWithOperatingSystem, Mode=TwoWay}" />
           <CheckBox
+              Content="Launch direct child launchers when Ctrl + left-clicking a folder"
+              IsChecked="{Binding EnableCtrlLeftClickToLaunchFolderChildren, Mode=TwoWay}" />
+          <CheckBox
               Content="Invert tray or menu bar left and right click actions"
               IsChecked="{Binding InvertTrayIconMouseButtons, Mode=TwoWay}"
               IsVisible="{Binding SupportsTrayIconMouseButtonInversion}" />

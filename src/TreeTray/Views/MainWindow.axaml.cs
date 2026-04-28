@@ -85,6 +85,13 @@ public partial class MainWindow : Window
 			handledEventsToo: true);
 	}
 
+	private static bool IsCtrlLeftClick(PointerPressedEventArgs eventArgs, PointerPoint currentPoint)
+	{
+		var isLeftClick = currentPoint.Properties.IsLeftButtonPressed
+			|| currentPoint.Properties.PointerUpdateKind == PointerUpdateKind.LeftButtonPressed;
+		return isLeftClick && eventArgs.KeyModifiers.HasFlag(KeyModifiers.Control);
+	}
+
 	private static LauncherItemViewModel? ResolveLauncherItemViewModel(object? source)
 	{
 		if (source is not Visual visual)
@@ -177,6 +184,18 @@ public partial class MainWindow : Window
 		}
 
 		var currentPoint = eventArgs.GetCurrentPoint(this);
+		var launcherItemViewModel = ResolveLauncherItemViewModel(eventArgs);
+
+		if (IsCtrlLeftClick(eventArgs, currentPoint)
+			&& _applicationController?.Configuration.EnableCtrlLeftClickToLaunchFolderChildren == true
+			&& launcherItemViewModel?.Model.EntryType == LauncherEntryType.Folder)
+		{
+			GetViewModel()!.SelectedItem = launcherItemViewModel;
+			_applicationController.LaunchFolderChildren(launcherItemViewModel.Model);
+			eventArgs.Handled = true;
+			return;
+		}
+
 		if (!currentPoint.Properties.IsRightButtonPressed
 			&& currentPoint.Properties.PointerUpdateKind != PointerUpdateKind.RightButtonPressed)
 		{
@@ -188,7 +207,6 @@ public partial class MainWindow : Window
 			return;
 		}
 
-		var launcherItemViewModel = ResolveLauncherItemViewModel(eventArgs);
 		if (launcherItemViewModel is null)
 		{
 			return;

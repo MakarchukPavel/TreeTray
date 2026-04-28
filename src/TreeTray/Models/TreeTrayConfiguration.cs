@@ -10,6 +10,8 @@ public sealed class TreeTrayConfiguration
 
 	public bool EnableTrayIcon { get; set; }
 
+	public bool EnableCtrlLeftClickToLaunchFolderChildren { get; set; }
+
 	public bool InvertTrayIconMouseButtons { get; set; }
 
 	public string LaunchersDirectory { get; set; } = string.Empty;

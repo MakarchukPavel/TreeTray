@@ -42,6 +42,7 @@ public sealed class ConfigurationService : IConfigurationService
 			LaunchersDirectory = _applicationPaths.GetDefaultLaunchersDirectory(),
 			EnableTrayIcon = true,
 			EnableTaskbarDockIcon = false,
+			EnableCtrlLeftClickToLaunchFolderChildren = true,
 			InvertTrayIconMouseButtons = false,
 			StartWithOperatingSystem = false,
 			TrayIconBackgroundColor = string.Empty,
@@ -77,6 +78,7 @@ public sealed class ConfigurationService : IConfigurationService
 			LaunchersDirectory = launchersDirectory,
 			EnableTrayIcon = enableTrayIcon,
 			EnableTaskbarDockIcon = !enableTrayIcon,
+			EnableCtrlLeftClickToLaunchFolderChildren = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.EnableCtrlLeftClickToLaunchFolderChildren), defaultConfiguration.EnableCtrlLeftClickToLaunchFolderChildren),
 			InvertTrayIconMouseButtons = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.InvertTrayIconMouseButtons), defaultConfiguration.InvertTrayIconMouseButtons),
 			StartWithOperatingSystem = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.StartWithOperatingSystem), defaultConfiguration.StartWithOperatingSystem),
 			TrayIconBackgroundColor = GetStringValue(rootElement, nameof(TreeTrayConfiguration.TrayIconBackgroundColor), defaultConfiguration.TrayIconBackgroundColor),
@@ -123,6 +125,12 @@ public sealed class ConfigurationService : IConfigurationService
 			nameof(TreeTrayConfiguration.StartWithOperatingSystem),
 			configuration.StartWithOperatingSystem.ToString().ToLowerInvariant(),
 			"When true, TreeTray registers itself to start automatically after sign-in. Accepted values: true, false. Default: false.");
+
+		WriteSetting(
+			writer,
+			nameof(TreeTrayConfiguration.EnableCtrlLeftClickToLaunchFolderChildren),
+			configuration.EnableCtrlLeftClickToLaunchFolderChildren.ToString().ToLowerInvariant(),
+			"When true, holding Ctrl while left-clicking a folder in the launcher window or the Windows tray popup launches all direct child launchers in that folder. Launchers in subfolders are not started. Accepted values: true, false. Default: true.");
 
 		WriteSetting(
 			writer,
