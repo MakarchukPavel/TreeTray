@@ -54,7 +54,7 @@
               <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="vm:LauncherItemViewModel">
                 <Border Margin="0,0,0,8" Padding="10,8">
                   <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Border Background="#EEF2E7" CornerRadius="10" Height="34" Padding="8" VerticalAlignment="Center" Width="34">
+                    <Border Background="{DynamicResource AppTreeItemIconBackgroundBrush}" CornerRadius="10" Height="34" Padding="8" VerticalAlignment="Center" Width="34">
                       <Image Height="18" Source="{Binding Icon}" Stretch="Uniform" Width="18" />
                     </Border>
 
@@ -65,7 +65,7 @@
             </TreeView.ItemTemplate>
           </TreeView>
 
-          <Border Background="#FBFBF8" Classes="card" IsVisible="{Binding HasNoEntries}" Padding="18">
+          <Border Background="{DynamicResource AppEmptyStateBackgroundBrush}" Classes="card" IsVisible="{Binding HasNoEntries}" Padding="18">
             <TextBlock HorizontalAlignment="Center" Opacity="0.75" Text="No launcher items are currently available in the configured folder." TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" />
           </Border>
         </Grid>
@@ -73,14 +73,7 @@
     </Border>
 
     <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto" RowSpacing="18">
-      <Border Classes="card" Padding="18">
-        <Border.Background>
-          <LinearGradientBrush EndPoint="1,1" StartPoint="0,0">
-            <GradientStop Color="#E5F4E6" Offset="0" />
-            <GradientStop Color="#F8E7C8" Offset="1" />
-          </LinearGradientBrush>
-        </Border.Background>
-
+      <Border Background="{DynamicResource AppHeroBackgroundBrush}" Classes="card" Padding="18">
         <StackPanel Spacing="6">
           <TextBlock FontSize="20" FontWeight="SemiBold" Text="{Binding HeaderTitle}" />
           <TextBlock FontSize="12" MaxWidth="360" Opacity="0.82" Text="Launcher overview and runtime behavior controls for the active configuration." TextWrapping="Wrap" />
@@ -95,6 +88,7 @@
           <TextBlock Classes="meta-label" Text="Changes are saved and applied immediately. Leave the glyph empty to use the default application icon." TextWrapping="Wrap" />
 
           <CheckBox Content="Enable tray or menu bar icon" IsChecked="{Binding IsTrayIconEnabled, Mode=TwoWay}" />
+          <CheckBox Content="Use dark theme" IsChecked="{Binding UseDarkTheme, Mode=TwoWay}" />
           <CheckBox Content="Start with operating system" IsChecked="{Binding StartWithOperatingSystem, Mode=TwoWay}" />
           <CheckBox
               Content="Launch direct child launchers when Ctrl + left-clicking a folder"
@@ -104,7 +98,7 @@
               IsChecked="{Binding InvertTrayIconMouseButtons, Mode=TwoWay}"
               IsVisible="{Binding SupportsTrayIconMouseButtonInversion}" />
 
-          <Border Background="#F6F7F2" CornerRadius="12" Padding="14">
+          <Border Background="{DynamicResource AppSettingsPanelBackgroundBrush}" CornerRadius="12" Padding="14">
             <StackPanel Spacing="10">
               <TextBlock Classes="section-title" Text="Tray Appearance" />
 
@@ -167,7 +161,7 @@
       </Border>
     </Grid>
 
-    <Border Background="#A6F4F4EE" Grid.ColumnSpan="2" IsVisible="{Binding IsLoading}">
+    <Border Background="{DynamicResource AppLoadingOverlayBrush}" Grid.ColumnSpan="2" IsVisible="{Binding IsLoading}">
       <Border Classes="card" HorizontalAlignment="Center" MaxWidth="360" Padding="24" VerticalAlignment="Center">
         <StackPanel Spacing="14">
           <TextBlock FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" Text="Loading launchers..." TextAlignment="Center" />

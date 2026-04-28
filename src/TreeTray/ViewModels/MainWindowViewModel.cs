@@ -38,6 +38,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
 	private bool _startWithOperatingSystem;
 
+	private bool _useDarkTheme;
+
 	private string _statusText = "Loading launchers...";
 
 	private string _trayIconBackgroundColor = string.Empty;
@@ -231,6 +233,20 @@ public sealed class MainWindowViewModel : ViewModelBase
 		private set => SetProperty(ref _statusText, value);
 	}
 
+	public bool UseDarkTheme
+	{
+		get => _useDarkTheme;
+		set
+		{
+			if (!SetProperty(ref _useDarkTheme, value))
+			{
+				return;
+			}
+
+			PersistRuntimeSettings();
+		}
+	}
+
 	public string TrayIconBackgroundColor
 	{
 		get => _trayIconBackgroundColor;
@@ -376,6 +392,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 			InvertTrayIconMouseButtons = InvertTrayIconMouseButtons,
 			LaunchersDirectory = _applicationController.Configuration.LaunchersDirectory,
 			StartWithOperatingSystem = StartWithOperatingSystem,
+			UseDarkTheme = UseDarkTheme,
 			TrayIconBackgroundColor = TrayIconBackgroundColor,
 			TrayIconForegroundColor = TrayIconForegroundColor,
 			TrayIconGlyph = TrayIconGlyph,
@@ -404,6 +421,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 			EnableCtrlLeftClickToLaunchFolderChildren = _applicationController.Configuration.EnableCtrlLeftClickToLaunchFolderChildren;
 			InvertTrayIconMouseButtons = _applicationController.Configuration.InvertTrayIconMouseButtons;
 			StartWithOperatingSystem = _applicationController.Configuration.StartWithOperatingSystem;
+			UseDarkTheme = _applicationController.Configuration.UseDarkTheme;
 			TrayIconGlyph = _applicationController.Configuration.TrayIconGlyph;
 			TrayIconForegroundColor = _applicationController.Configuration.TrayIconForegroundColor;
 			TrayIconBackgroundColor = _applicationController.Configuration.TrayIconBackgroundColor;

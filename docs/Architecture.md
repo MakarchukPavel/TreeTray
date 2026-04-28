@@ -54,6 +54,8 @@ The view model layer exposes bindable state for Avalonia XAML and keeps view cod
 4. `ApplicationController` loads configuration, applies startup registration, builds the launcher catalog, and configures the tray icon, menu bar item, and main window.
 5. `MainWindowViewModel` listens for controller state changes and refreshes the visible launcher tree.
 
+The current theme variant is also derived from the configuration during startup, so the launcher window opens in the persisted light or dark mode immediately.
+
 ## Runtime Shell Behavior
 
 - If `EnableTrayIcon` is `true`, TreeTray starts in the background and exposes itself through a tray icon on Windows, a native menu bar item on macOS, or a tray icon on Linux.
@@ -61,6 +63,7 @@ The view model layer exposes bindable state for Avalonia XAML and keeps view cod
 - The launcher catalog is loaded asynchronously. During startup, the shell surface is created first and the launcher snapshot is populated in the background.
 - The main window can be opened from the tray or menu bar and can be hidden again without shutting down the process when tray mode is enabled.
 - When `EnableCtrlLeftClickToLaunchFolderChildren` is enabled, the launcher window and the Windows tray popup also support a folder batch-launch gesture that starts only direct child launchers.
+- When `UseDarkTheme` changes, the Avalonia application theme is switched immediately without requiring a restart.
 
 ## Platform Integration
 
@@ -104,4 +107,4 @@ If the application is launched with `--config <path>`, the autostart entry inclu
 
 TreeTray creates the configuration file automatically on the first run. The file contains English XML comments that document every supported setting and its default value. This keeps the application self-documenting even without opening the README.
 
-The configuration file can also be supplied explicitly through the command line. This allows multiple TreeTray instances to run side by side, each with its own launcher directory, tray appearance, startup registration, and shell behavior.
+The configuration file can also be supplied explicitly through the command line. This allows multiple TreeTray instances to run side by side, each with its own launcher directory, tray appearance, visual theme, startup registration, and shell behavior.

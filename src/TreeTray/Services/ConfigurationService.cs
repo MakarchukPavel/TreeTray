@@ -45,6 +45,7 @@ public sealed class ConfigurationService : IConfigurationService
 			EnableCtrlLeftClickToLaunchFolderChildren = true,
 			InvertTrayIconMouseButtons = false,
 			StartWithOperatingSystem = false,
+			UseDarkTheme = false,
 			TrayIconBackgroundColor = string.Empty,
 			TrayIconForegroundColor = string.Empty,
 			TrayIconGlyph = string.Empty,
@@ -81,6 +82,7 @@ public sealed class ConfigurationService : IConfigurationService
 			EnableCtrlLeftClickToLaunchFolderChildren = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.EnableCtrlLeftClickToLaunchFolderChildren), defaultConfiguration.EnableCtrlLeftClickToLaunchFolderChildren),
 			InvertTrayIconMouseButtons = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.InvertTrayIconMouseButtons), defaultConfiguration.InvertTrayIconMouseButtons),
 			StartWithOperatingSystem = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.StartWithOperatingSystem), defaultConfiguration.StartWithOperatingSystem),
+			UseDarkTheme = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.UseDarkTheme), defaultConfiguration.UseDarkTheme),
 			TrayIconBackgroundColor = GetStringValue(rootElement, nameof(TreeTrayConfiguration.TrayIconBackgroundColor), defaultConfiguration.TrayIconBackgroundColor),
 			TrayIconForegroundColor = GetStringValue(rootElement, nameof(TreeTrayConfiguration.TrayIconForegroundColor), defaultConfiguration.TrayIconForegroundColor),
 			TrayIconGlyph = GetStringValue(rootElement, nameof(TreeTrayConfiguration.TrayIconGlyph), defaultConfiguration.TrayIconGlyph),
@@ -125,6 +127,12 @@ public sealed class ConfigurationService : IConfigurationService
 			nameof(TreeTrayConfiguration.StartWithOperatingSystem),
 			configuration.StartWithOperatingSystem.ToString().ToLowerInvariant(),
 			"When true, TreeTray registers itself to start automatically after sign-in. Accepted values: true, false. Default: false.");
+
+		WriteSetting(
+			writer,
+			nameof(TreeTrayConfiguration.UseDarkTheme),
+			configuration.UseDarkTheme.ToString().ToLowerInvariant(),
+			"When true, TreeTray uses the dark application theme. When false, TreeTray uses the light application theme. Accepted values: true, false. Default: false.");
 
 		WriteSetting(
 			writer,

@@ -30,6 +30,8 @@ public sealed class ApplicationController : IApplicationController
 
 	private readonly IWindowsTrayIconService _windowsTrayIconService;
 
+	private Application? _application;
+
 	private IClassicDesktopStyleApplicationLifetime? _desktopLifetime;
 
 	private bool _isLoading;
@@ -118,11 +120,24 @@ public sealed class ApplicationController : IApplicationController
 			InvertTrayIconMouseButtons = configuration.InvertTrayIconMouseButtons,
 			LaunchersDirectory = configuration.LaunchersDirectory,
 			StartWithOperatingSystem = configuration.StartWithOperatingSystem,
+			UseDarkTheme = configuration.UseDarkTheme,
 			TrayIconBackgroundColor = configuration.TrayIconBackgroundColor,
 			TrayIconForegroundColor = configuration.TrayIconForegroundColor,
 			TrayIconGlyph = configuration.TrayIconGlyph,
 			TrayToolTipText = configuration.TrayToolTipText
 		};
+	}
+
+	private void ApplyTheme()
+	{
+		if (_application is null)
+		{
+			return;
+		}
+
+		_application.RequestedThemeVariant = Configuration.UseDarkTheme
+			? Avalonia.Styling.ThemeVariant.Dark
+			: Avalonia.Styling.ThemeVariant.Light;
 	}
 
 	private void AttachMainWindowToLifetime()
@@ -247,6 +262,7 @@ public sealed class ApplicationController : IApplicationController
 	private void LoadState()
 	{
 		Configuration = _configurationService.Load();
+		ApplyTheme();
 		_startupRegistrationService.Apply(Configuration);
 	}
 
@@ -449,6 +465,7 @@ public sealed class ApplicationController : IApplicationController
 
 	public void Start(Application application)
 	{
+		_application = application;
 		_desktopLifetime = application.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime
 			?? throw new NotSupportedException("TreeTray requires the classic desktop lifetime.");
 
@@ -461,6 +478,7 @@ public sealed class ApplicationController : IApplicationController
 	public void UpdateConfiguration(TreeTrayConfiguration configuration)
 	{
 		Configuration = CloneConfiguration(configuration);
+		ApplyTheme();
 		_configurationService.Save(Configuration);
 		_startupRegistrationService.Apply(Configuration);
 		SyncShell(initialStartup: false);

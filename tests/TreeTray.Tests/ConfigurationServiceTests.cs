@@ -15,9 +15,11 @@ public sealed class ConfigurationServiceTests
 		var configuration = service.Load();
 
 		Assert.True(configuration.EnableCtrlLeftClickToLaunchFolderChildren);
+		Assert.False(configuration.UseDarkTheme);
 		Assert.True(File.Exists(fixture.ConfigurationFilePath));
 		var xml = File.ReadAllText(fixture.ConfigurationFilePath);
 		Assert.Contains("<EnableCtrlLeftClickToLaunchFolderChildren>true</EnableCtrlLeftClickToLaunchFolderChildren>", xml, StringComparison.Ordinal);
+		Assert.Contains("<UseDarkTheme>false</UseDarkTheme>", xml, StringComparison.Ordinal);
 	}
 
 	[Fact]
@@ -41,6 +43,28 @@ public sealed class ConfigurationServiceTests
 
 		Assert.False(configuration.EnableCtrlLeftClickToLaunchFolderChildren);
 		Assert.Equal(Path.GetFullPath("Launchers", fixture.ConfigurationDirectory), configuration.LaunchersDirectory);
+	}
+
+	[Fact]
+	public void Load_ReadsDarkThemeFlagFromExistingConfiguration()
+	{
+		using var fixture = new TestApplicationPaths();
+		Directory.CreateDirectory(fixture.ConfigurationDirectory);
+		File.WriteAllText(
+			fixture.ConfigurationFilePath,
+			"""
+			<?xml version="1.0" encoding="utf-8"?>
+			<TreeTrayConfiguration>
+			  <LaunchersDirectory>Launchers</LaunchersDirectory>
+			  <EnableTrayIcon>true</EnableTrayIcon>
+			  <UseDarkTheme>true</UseDarkTheme>
+			</TreeTrayConfiguration>
+			""");
+		var service = new ConfigurationService(fixture);
+
+		var configuration = service.Load();
+
+		Assert.True(configuration.UseDarkTheme);
 	}
 
 	private sealed class TestApplicationPaths : IApplicationPaths, IDisposable

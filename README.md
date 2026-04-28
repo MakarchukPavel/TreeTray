@@ -14,6 +14,7 @@ TreeTray is a cross-platform Avalonia application that turns a folder of launche
 - Starts target applications when a launcher entry is selected.
 - Can launch all direct child launchers from a folder with `Ctrl + left click` when the feature is enabled.
 - Can register itself to start automatically with the operating system.
+- Supports both light and dark application themes with runtime switching from the settings panel.
 - Creates an XML configuration file with inline English documentation comments.
 
 ## Demo
@@ -105,6 +106,11 @@ Tray appearance:
 - `TrayToolTipText` sets the tooltip text shown on hover and is also used in the launcher window title and the internal header.
 - If `TrayIconGlyph` is empty, TreeTray uses the default application icon.
 
+Application appearance:
+
+- `UseDarkTheme` switches the launcher window between the light and dark visual themes.
+- The theme setting is applied immediately from the main window and is persisted in the configuration file.
+
 These values can be edited at runtime from the main window in the `Runtime Settings` section.
 
 Folder batch launch behavior:
@@ -133,6 +139,8 @@ Example:
   <EnableTrayIcon>true</EnableTrayIcon>
   <!-- When true, TreeTray registers itself to start automatically after sign-in. -->
   <StartWithOperatingSystem>false</StartWithOperatingSystem>
+  <!-- When true, TreeTray uses the dark application theme. -->
+  <UseDarkTheme>false</UseDarkTheme>
   <!-- When true, holding Ctrl while left-clicking a folder launches all direct child launchers from that folder. -->
   <EnableCtrlLeftClickToLaunchFolderChildren>true</EnableCtrlLeftClickToLaunchFolderChildren>
   <!-- Optional tray or menu bar click inversion on Windows and macOS. -->

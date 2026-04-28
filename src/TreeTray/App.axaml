@@ -2,19 +2,60 @@
     x:Class="TreeTray.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="AppWindowBackgroundBrush">#F4F4EE</SolidColorBrush>
+          <SolidColorBrush x:Key="AppWindowForegroundBrush">#1E261D</SolidColorBrush>
+          <SolidColorBrush x:Key="AppCardBackgroundBrush">#FCFCF7</SolidColorBrush>
+          <SolidColorBrush x:Key="AppCardBorderBrush">#D9DDD1</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSectionTitleBrush">#20311C</SolidColorBrush>
+          <SolidColorBrush x:Key="AppMetaLabelBrush">#5A6756</SolidColorBrush>
+          <SolidColorBrush x:Key="AppMetaValueBrush">#243121</SolidColorBrush>
+          <SolidColorBrush x:Key="AppTreeItemIconBackgroundBrush">#EEF2E7</SolidColorBrush>
+          <SolidColorBrush x:Key="AppEmptyStateBackgroundBrush">#FBFBF8</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSettingsPanelBackgroundBrush">#F6F7F2</SolidColorBrush>
+          <SolidColorBrush x:Key="AppLoadingOverlayBrush">#A6F4F4EE</SolidColorBrush>
+          <LinearGradientBrush x:Key="AppHeroBackgroundBrush" EndPoint="1,1" StartPoint="0,0">
+            <GradientStop Color="#E5F4E6" Offset="0" />
+            <GradientStop Color="#F8E7C8" Offset="1" />
+          </LinearGradientBrush>
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="AppWindowBackgroundBrush">#111714</SolidColorBrush>
+          <SolidColorBrush x:Key="AppWindowForegroundBrush">#EFF5E9</SolidColorBrush>
+          <SolidColorBrush x:Key="AppCardBackgroundBrush">#18201C</SolidColorBrush>
+          <SolidColorBrush x:Key="AppCardBorderBrush">#2A3630</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSectionTitleBrush">#F1F6EA</SolidColorBrush>
+          <SolidColorBrush x:Key="AppMetaLabelBrush">#A8B6A5</SolidColorBrush>
+          <SolidColorBrush x:Key="AppMetaValueBrush">#DDE8D7</SolidColorBrush>
+          <SolidColorBrush x:Key="AppTreeItemIconBackgroundBrush">#233029</SolidColorBrush>
+          <SolidColorBrush x:Key="AppEmptyStateBackgroundBrush">#1A2320</SolidColorBrush>
+          <SolidColorBrush x:Key="AppSettingsPanelBackgroundBrush">#1C2622</SolidColorBrush>
+          <SolidColorBrush x:Key="AppLoadingOverlayBrush">#B30E1311</SolidColorBrush>
+          <LinearGradientBrush x:Key="AppHeroBackgroundBrush" EndPoint="1,1" StartPoint="0,0">
+            <GradientStop Color="#20382D" Offset="0" />
+            <GradientStop Color="#3E2F1E" Offset="1" />
+          </LinearGradientBrush>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
 
     <Style Selector="Window">
-      <Setter Property="Background" Value="#F4F4EE" />
-      <Setter Property="Foreground" Value="#1E261D" />
+      <Setter Property="Background" Value="{DynamicResource AppWindowBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AppWindowForegroundBrush}" />
     </Style>
 
     <Style Selector="Border.card">
-      <Setter Property="Background" Value="#FCFCF7" />
+      <Setter Property="Background" Value="{DynamicResource AppCardBackgroundBrush}" />
       <Setter Property="CornerRadius" Value="24" />
-      <Setter Property="BorderBrush" Value="#D9DDD1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AppCardBorderBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="BoxShadow" Value="0 10 30 0 #14000000" />
     </Style>
@@ -22,18 +63,18 @@
     <Style Selector="TextBlock.section-title">
       <Setter Property="FontSize" Value="18" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#20311C" />
+      <Setter Property="Foreground" Value="{DynamicResource AppSectionTitleBrush}" />
     </Style>
 
     <Style Selector="TextBlock.meta-label">
       <Setter Property="FontSize" Value="12" />
-      <Setter Property="Foreground" Value="#5A6756" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMetaLabelBrush}" />
     </Style>
 
     <Style Selector="TextBlock.meta-value">
       <Setter Property="FontSize" Value="13" />
       <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#243121" />
+      <Setter Property="Foreground" Value="{DynamicResource AppMetaValueBrush}" />
     </Style>
 
     <Style Selector="Button.toolbar">
