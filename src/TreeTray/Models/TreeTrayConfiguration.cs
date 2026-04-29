@@ -18,7 +18,7 @@ public sealed class TreeTrayConfiguration
 
 	public bool StartWithOperatingSystem { get; set; }
 
-	public bool UseDarkTheme { get; set; }
+	public string ThemeMode { get; set; } = ApplicationThemeModes.System;
 
 	public string TrayIconBackgroundColor { get; set; } = string.Empty;
 

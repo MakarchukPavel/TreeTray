@@ -88,7 +88,11 @@
           <TextBlock Classes="meta-label" Text="Changes are saved and applied immediately. Leave the glyph empty to use the default application icon." TextWrapping="Wrap" />
 
           <CheckBox Content="Enable tray or menu bar icon" IsChecked="{Binding IsTrayIconEnabled, Mode=TwoWay}" />
-          <CheckBox Content="Use dark theme" IsChecked="{Binding UseDarkTheme, Mode=TwoWay}" />
+          <StackPanel Spacing="4">
+            <TextBlock Classes="meta-label" Text="Theme" />
+            <ComboBox ItemsSource="{Binding ThemeModes}" SelectedItem="{Binding SelectedThemeMode, Mode=TwoWay}" />
+            <TextBlock Classes="meta-label" IsVisible="{Binding IsSystemThemeModeSelected}" Text="{Binding EffectiveThemeDescription}" />
+          </StackPanel>
           <CheckBox Content="Start with operating system" IsChecked="{Binding StartWithOperatingSystem, Mode=TwoWay}" />
           <CheckBox
               Content="Launch direct child launchers when Ctrl + left-clicking a folder"

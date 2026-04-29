@@ -120,7 +120,7 @@ public sealed class ApplicationController : IApplicationController
 			InvertTrayIconMouseButtons = configuration.InvertTrayIconMouseButtons,
 			LaunchersDirectory = configuration.LaunchersDirectory,
 			StartWithOperatingSystem = configuration.StartWithOperatingSystem,
-			UseDarkTheme = configuration.UseDarkTheme,
+			ThemeMode = ApplicationThemeModes.Normalize(configuration.ThemeMode),
 			TrayIconBackgroundColor = configuration.TrayIconBackgroundColor,
 			TrayIconForegroundColor = configuration.TrayIconForegroundColor,
 			TrayIconGlyph = configuration.TrayIconGlyph,
@@ -135,9 +135,38 @@ public sealed class ApplicationController : IApplicationController
 			return;
 		}
 
-		_application.RequestedThemeVariant = Configuration.UseDarkTheme
-			? Avalonia.Styling.ThemeVariant.Dark
-			: Avalonia.Styling.ThemeVariant.Light;
+		_application.RequestedThemeVariant = ResolveRequestedThemeVariant(Configuration.ThemeMode);
+	}
+
+	private static Avalonia.Styling.ThemeVariant ResolveRequestedThemeVariant(string? themeMode)
+	{
+		var normalizedMode = ApplicationThemeModes.Normalize(themeMode);
+		if (string.Equals(normalizedMode, ApplicationThemeModes.Dark, StringComparison.Ordinal))
+		{
+			return Avalonia.Styling.ThemeVariant.Dark;
+		}
+
+		if (string.Equals(normalizedMode, ApplicationThemeModes.Light, StringComparison.Ordinal))
+		{
+			return Avalonia.Styling.ThemeVariant.Light;
+		}
+
+		return Avalonia.Styling.ThemeVariant.Default;
+	}
+
+	private void OnApplicationPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs eventArgs)
+	{
+		if (!string.Equals(eventArgs.Property.Name, "ActualThemeVariant", StringComparison.Ordinal))
+		{
+			return;
+		}
+
+		if (!string.Equals(Configuration.ThemeMode, ApplicationThemeModes.System, StringComparison.Ordinal))
+		{
+			return;
+		}
+
+		RaiseStateChanged();
 	}
 
 	private void AttachMainWindowToLifetime()
@@ -394,6 +423,11 @@ public sealed class ApplicationController : IApplicationController
 	public void Exit()
 	{
 		_isShuttingDown = true;
+		if (_application is not null)
+		{
+			_application.PropertyChanged -= OnApplicationPropertyChanged;
+		}
+
 		RemoveTrayIcon();
 		_desktopLifetime?.Shutdown();
 	}
@@ -466,6 +500,7 @@ public sealed class ApplicationController : IApplicationController
 	public void Start(Application application)
 	{
 		_application = application;
+		_application.PropertyChanged += OnApplicationPropertyChanged;
 		_desktopLifetime = application.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime
 			?? throw new NotSupportedException("TreeTray requires the classic desktop lifetime.");
 

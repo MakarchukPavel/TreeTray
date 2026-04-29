@@ -35,6 +35,25 @@ public sealed class ConfigurationService : IConfigurationService
 			: rawValue.Trim();
 	}
 
+	private static string GetThemeModeValue(XElement? parentElement, TreeTrayConfiguration defaultConfiguration)
+	{
+		var rawThemeMode = parentElement?.Element(nameof(TreeTrayConfiguration.ThemeMode))?.Value;
+		if (!string.IsNullOrWhiteSpace(rawThemeMode))
+		{
+			return ApplicationThemeModes.Normalize(rawThemeMode);
+		}
+
+		var legacyUseDarkTheme = parentElement?.Element("UseDarkTheme")?.Value;
+		if (bool.TryParse(legacyUseDarkTheme, out var useDarkTheme))
+		{
+			return useDarkTheme
+				? ApplicationThemeModes.Dark
+				: ApplicationThemeModes.Light;
+		}
+
+		return defaultConfiguration.ThemeMode;
+	}
+
 	private TreeTrayConfiguration CreateDefaultConfiguration()
 	{
 		return new TreeTrayConfiguration
@@ -45,7 +64,7 @@ public sealed class ConfigurationService : IConfigurationService
 			EnableCtrlLeftClickToLaunchFolderChildren = true,
 			InvertTrayIconMouseButtons = false,
 			StartWithOperatingSystem = false,
-			UseDarkTheme = false,
+			ThemeMode = ApplicationThemeModes.System,
 			TrayIconBackgroundColor = string.Empty,
 			TrayIconForegroundColor = string.Empty,
 			TrayIconGlyph = string.Empty,
@@ -82,7 +101,7 @@ public sealed class ConfigurationService : IConfigurationService
 			EnableCtrlLeftClickToLaunchFolderChildren = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.EnableCtrlLeftClickToLaunchFolderChildren), defaultConfiguration.EnableCtrlLeftClickToLaunchFolderChildren),
 			InvertTrayIconMouseButtons = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.InvertTrayIconMouseButtons), defaultConfiguration.InvertTrayIconMouseButtons),
 			StartWithOperatingSystem = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.StartWithOperatingSystem), defaultConfiguration.StartWithOperatingSystem),
-			UseDarkTheme = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.UseDarkTheme), defaultConfiguration.UseDarkTheme),
+			ThemeMode = GetThemeModeValue(rootElement, defaultConfiguration),
 			TrayIconBackgroundColor = GetStringValue(rootElement, nameof(TreeTrayConfiguration.TrayIconBackgroundColor), defaultConfiguration.TrayIconBackgroundColor),
 			TrayIconForegroundColor = GetStringValue(rootElement, nameof(TreeTrayConfiguration.TrayIconForegroundColor), defaultConfiguration.TrayIconForegroundColor),
 			TrayIconGlyph = GetStringValue(rootElement, nameof(TreeTrayConfiguration.TrayIconGlyph), defaultConfiguration.TrayIconGlyph),
@@ -130,9 +149,9 @@ public sealed class ConfigurationService : IConfigurationService
 
 		WriteSetting(
 			writer,
-			nameof(TreeTrayConfiguration.UseDarkTheme),
-			configuration.UseDarkTheme.ToString().ToLowerInvariant(),
-			"When true, TreeTray uses the dark application theme. When false, TreeTray uses the light application theme. Accepted values: true, false. Default: false.");
+			nameof(TreeTrayConfiguration.ThemeMode),
+			ApplicationThemeModes.Normalize(configuration.ThemeMode),
+			"Controls the launcher window theme. Accepted values: System, Light, Dark. System follows the operating system theme. Default: System.");
 
 		WriteSetting(
 			writer,

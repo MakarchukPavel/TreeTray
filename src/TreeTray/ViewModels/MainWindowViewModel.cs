@@ -38,7 +38,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
 	private bool _startWithOperatingSystem;
 
-	private bool _useDarkTheme;
+	private string _selectedThemeMode = ApplicationThemeModes.System;
 
 	private string _statusText = "Loading launchers...";
 
@@ -65,6 +65,12 @@ public sealed class MainWindowViewModel : ViewModelBase
 		_applicationController = applicationController;
 		_iconService = iconService;
 		RootItems = new ObservableCollection<LauncherItemViewModel>();
+		ThemeModes = new[]
+		{
+			ApplicationThemeModes.System,
+			ApplicationThemeModes.Light,
+			ApplicationThemeModes.Dark
+		};
 
 		ReloadCommand = new RelayCommand(_applicationController.Reload, () => !IsLoading);
 		LaunchSelectedCommand = new RelayCommand(LaunchSelected, () => !IsLoading && SelectedItem?.CanLaunch == true);
@@ -233,17 +239,41 @@ public sealed class MainWindowViewModel : ViewModelBase
 		private set => SetProperty(ref _statusText, value);
 	}
 
-	public bool UseDarkTheme
+	public string[] ThemeModes { get; }
+
+	public string SelectedThemeMode
 	{
-		get => _useDarkTheme;
+		get => _selectedThemeMode;
 		set
 		{
-			if (!SetProperty(ref _useDarkTheme, value))
+			var normalizedValue = ApplicationThemeModes.Normalize(value);
+			if (!SetProperty(ref _selectedThemeMode, normalizedValue))
 			{
 				return;
 			}
 
+			OnPropertyChanged(nameof(IsSystemThemeModeSelected));
+			OnPropertyChanged(nameof(EffectiveThemeDescription));
 			PersistRuntimeSettings();
+		}
+	}
+
+	public bool IsSystemThemeModeSelected => string.Equals(SelectedThemeMode, ApplicationThemeModes.System, StringComparison.Ordinal);
+
+	public string EffectiveThemeDescription
+	{
+		get
+		{
+			if (!IsSystemThemeModeSelected)
+			{
+				return string.Empty;
+			}
+
+			var actualThemeVariant = Application.Current?.ActualThemeVariant;
+			var effectiveTheme = actualThemeVariant == Avalonia.Styling.ThemeVariant.Dark
+				? ApplicationThemeModes.Dark
+				: ApplicationThemeModes.Light;
+			return string.Format(CultureInfo.InvariantCulture, "Current system theme: {0}", effectiveTheme);
 		}
 	}
 
@@ -392,7 +422,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 			InvertTrayIconMouseButtons = InvertTrayIconMouseButtons,
 			LaunchersDirectory = _applicationController.Configuration.LaunchersDirectory,
 			StartWithOperatingSystem = StartWithOperatingSystem,
-			UseDarkTheme = UseDarkTheme,
+			ThemeMode = SelectedThemeMode,
 			TrayIconBackgroundColor = TrayIconBackgroundColor,
 			TrayIconForegroundColor = TrayIconForegroundColor,
 			TrayIconGlyph = TrayIconGlyph,
@@ -421,12 +451,13 @@ public sealed class MainWindowViewModel : ViewModelBase
 			EnableCtrlLeftClickToLaunchFolderChildren = _applicationController.Configuration.EnableCtrlLeftClickToLaunchFolderChildren;
 			InvertTrayIconMouseButtons = _applicationController.Configuration.InvertTrayIconMouseButtons;
 			StartWithOperatingSystem = _applicationController.Configuration.StartWithOperatingSystem;
-			UseDarkTheme = _applicationController.Configuration.UseDarkTheme;
+			SelectedThemeMode = _applicationController.Configuration.ThemeMode;
 			TrayIconGlyph = _applicationController.Configuration.TrayIconGlyph;
 			TrayIconForegroundColor = _applicationController.Configuration.TrayIconForegroundColor;
 			TrayIconBackgroundColor = _applicationController.Configuration.TrayIconBackgroundColor;
 			TrayToolTipText = _applicationController.Configuration.TrayToolTipText;
 			UpdateTitles();
+			OnPropertyChanged(nameof(EffectiveThemeDescription));
 
 			RootItems.Clear();
 			foreach (var entry in _applicationController.Snapshot.RootEntries)

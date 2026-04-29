@@ -54,7 +54,7 @@ The view model layer exposes bindable state for Avalonia XAML and keeps view cod
 4. `ApplicationController` loads configuration, applies startup registration, builds the launcher catalog, and configures the tray icon, menu bar item, and main window.
 5. `MainWindowViewModel` listens for controller state changes and refreshes the visible launcher tree.
 
-The current theme variant is also derived from the configuration during startup, so the launcher window opens in the persisted light or dark mode immediately.
+The current theme variant is also derived from the configuration during startup, so the launcher window opens in the persisted `System`, `Light`, or `Dark` mode immediately.
 
 ## Runtime Shell Behavior
 
@@ -63,7 +63,8 @@ The current theme variant is also derived from the configuration during startup,
 - The launcher catalog is loaded asynchronously. During startup, the shell surface is created first and the launcher snapshot is populated in the background.
 - The main window can be opened from the tray or menu bar and can be hidden again without shutting down the process when tray mode is enabled.
 - When `EnableCtrlLeftClickToLaunchFolderChildren` is enabled, the launcher window and the Windows tray popup also support a folder batch-launch gesture that starts only direct child launchers.
-- When `UseDarkTheme` changes, the Avalonia application theme is switched immediately without requiring a restart.
+- When `ThemeMode` changes, the Avalonia application theme is switched immediately without requiring a restart.
+- When `ThemeMode` is `System`, the UI also resolves and displays the currently effective operating system theme.
 
 ## Platform Integration
 

@@ -108,7 +108,9 @@ Tray appearance:
 
 Application appearance:
 
-- `UseDarkTheme` switches the launcher window between the light and dark visual themes.
+- `ThemeMode` controls the launcher window theme.
+- Supported values are `System`, `Light`, and `Dark`.
+- `System` follows the operating system theme and the settings panel shows which theme is currently active.
 - The theme setting is applied immediately from the main window and is persisted in the configuration file.
 
 These values can be edited at runtime from the main window in the `Runtime Settings` section.
@@ -139,8 +141,8 @@ Example:
   <EnableTrayIcon>true</EnableTrayIcon>
   <!-- When true, TreeTray registers itself to start automatically after sign-in. -->
   <StartWithOperatingSystem>false</StartWithOperatingSystem>
-  <!-- When true, TreeTray uses the dark application theme. -->
-  <UseDarkTheme>false</UseDarkTheme>
+  <!-- Controls the launcher window theme. Accepted values: System, Light, Dark. -->
+  <ThemeMode>System</ThemeMode>
   <!-- When true, holding Ctrl while left-clicking a folder launches all direct child launchers from that folder. -->
   <EnableCtrlLeftClickToLaunchFolderChildren>true</EnableCtrlLeftClickToLaunchFolderChildren>
   <!-- Optional tray or menu bar click inversion on Windows and macOS. -->
