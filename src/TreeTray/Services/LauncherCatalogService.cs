@@ -21,43 +21,61 @@ public sealed class LauncherCatalogService : ILauncherCatalogService
 
 	#region Methods: Private
 
+	private static IEnumerable<string> EnumerateFileSystemEntriesSafely(string directoryPath)
+	{
+		try
+		{
+			return Directory.EnumerateFileSystemEntries(directoryPath).ToArray();
+		}
+		catch
+		{
+			return Array.Empty<string>();
+		}
+	}
+
 	private IReadOnlyList<LauncherEntry> BuildDirectoryEntries(string directoryPath)
 	{
 		var entries = new List<LauncherEntry>();
 
-		foreach (var path in Directory.EnumerateFileSystemEntries(directoryPath))
+		foreach (var path in EnumerateFileSystemEntriesSafely(directoryPath))
 		{
-			if (ShouldIgnore(path))
+			try
 			{
-				continue;
-			}
+				if (ShouldIgnore(path))
+				{
+					continue;
+				}
 
-			if (Directory.Exists(path))
-			{
+				if (Directory.Exists(path))
+				{
+					if (_platformLauncherResolver.IsLauncherPath(path))
+					{
+						entries.Add(CreateLauncherEntry(path));
+						continue;
+					}
+
+					var childEntries = BuildDirectoryEntries(path);
+					if (childEntries.Count == 0)
+					{
+						continue;
+					}
+
+					entries.Add(new LauncherEntry(
+						LauncherEntryType.Folder,
+						Path.GetFileName(path),
+						path,
+						children: childEntries));
+					continue;
+				}
+
 				if (_platformLauncherResolver.IsLauncherPath(path))
 				{
 					entries.Add(CreateLauncherEntry(path));
-					continue;
 				}
-
-				var childEntries = BuildDirectoryEntries(path);
-				if (childEntries.Count == 0)
-				{
-					continue;
-				}
-
-				entries.Add(new LauncherEntry(
-					LauncherEntryType.Folder,
-					Path.GetFileName(path),
-					path,
-					children: childEntries));
-
-				continue;
 			}
-
-			if (_platformLauncherResolver.IsLauncherPath(path))
+			catch
 			{
-				entries.Add(CreateLauncherEntry(path));
+				// Keep the reload resilient when a folder disappears or becomes unavailable mid-scan.
 			}
 		}
 
