@@ -82,6 +82,26 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 
 	#endregion
 
+	#region Struct: PrivateNotifyIconIdentifier
+
+	[StructLayout(LayoutKind.Sequential)]
+	private struct PrivateNotifyIconIdentifier
+	{
+		#region Fields: Public
+
+		public uint Size;
+
+		public IntPtr WindowHandle;
+
+		public uint IconId;
+
+		public Guid GuidItem;
+
+		#endregion
+	}
+
+	#endregion
+
 	#region Struct: PrivatePoint
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -92,6 +112,26 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		public int X;
 
 		public int Y;
+
+		#endregion
+	}
+
+	#endregion
+
+	#region Struct: PrivateRect
+
+	[StructLayout(LayoutKind.Sequential)]
+	private struct PrivateRect
+	{
+		#region Fields: Public
+
+		public int Left;
+
+		public int Top;
+
+		public int Right;
+
+		public int Bottom;
 
 		#endregion
 	}
@@ -609,8 +649,42 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static extern bool ShellNotifyIcon(uint message, ref PrivateNotifyIconData data);
 
+	[DllImport("shell32.dll", EntryPoint = "Shell_NotifyIconGetRect", SetLastError = true)]
+	private static extern int ShellNotifyIconGetRect(
+		ref PrivateNotifyIconIdentifier identifier,
+		out PrivateRect iconRectangle);
+
+	private PixelPoint? TryGetCurrentTrayIconScreenPosition()
+	{
+		if (_windowHandle == IntPtr.Zero || !_hasNotifyIcon)
+		{
+			return null;
+		}
+
+		var identifier = new PrivateNotifyIconIdentifier
+		{
+			Size = (uint)Marshal.SizeOf<PrivateNotifyIconIdentifier>(),
+			WindowHandle = _windowHandle,
+			IconId = 1,
+			GuidItem = Guid.Empty
+		};
+
+		if (ShellNotifyIconGetRect(ref identifier, out var iconRectangle) != 0)
+		{
+			return null;
+		}
+
+		return new PixelPoint(iconRectangle.Left, iconRectangle.Bottom);
+	}
+
 	private PixelPoint ResolveScreenPosition(PixelPoint? anchorPoint)
 	{
+		var trayIconScreenPosition = TryGetCurrentTrayIconScreenPosition();
+		if (trayIconScreenPosition is not null)
+		{
+			return trayIconScreenPosition.Value;
+		}
+
 		var screenPosition = anchorPoint;
 
 		if (screenPosition is null || (screenPosition.Value.X == 0 && screenPosition.Value.Y == 0))
