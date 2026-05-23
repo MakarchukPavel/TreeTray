@@ -1,6 +1,7 @@
 #region Class: TrayContextMenuBuilder
 
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Primitives.PopupPositioning;
 using Avalonia.VisualTree;
 
 namespace TreeTray.Services;
@@ -28,6 +29,12 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 	private const string User32LibraryName = "user32.dll";
 
 	private const double SubmenuOverlap = 8;
+
+	private const PopupPositionerConstraintAdjustment TrayPopupConstraintAdjustment =
+		PopupPositionerConstraintAdjustment.FlipX
+		| PopupPositionerConstraintAdjustment.FlipY
+		| PopupPositionerConstraintAdjustment.SlideX
+		| PopupPositionerConstraintAdjustment.SlideY;
 
 	#endregion
 
@@ -131,13 +138,65 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 					return;
 				}
 
-				var popupScreenPoint = popupChild.PointToScreen(new Point());
+				var popupScreenBounds = new PixelRect(
+					popupChild.PointToScreen(new Point()),
+					popupChild.PointToScreen(new Point(popupChild.Bounds.Width, popupChild.Bounds.Height)));
 				var itemScreenPoint = item.PointToScreen(new Point());
-				popup.HorizontalOffset = popupScreenPoint.X >= itemScreenPoint.X
-					? -SubmenuOverlap
-					: SubmenuOverlap;
+				var topLevel = TopLevel.GetTopLevel(popupChild);
+				var screens = topLevel?.Screens;
+				var screen = screens?.ScreenFromVisual(popupChild);
+				if (screen is null)
+				{
+					popup.HorizontalOffset = CalculateSubmenuHorizontalOffset(popupScreenBounds, itemScreenPoint);
+					popup.VerticalOffset = 0;
+					return;
+				}
+
+				var (horizontalOffset, verticalOffset) = CalculateSubmenuPopupOffsets(
+					popupScreenBounds,
+					screen.WorkingArea,
+					itemScreenPoint);
+				popup.HorizontalOffset = horizontalOffset;
+				popup.VerticalOffset = verticalOffset;
 			},
 			DispatcherPriority.Input);
+	}
+
+	internal static double CalculateSubmenuHorizontalOffset(PixelRect popupScreenBounds, PixelPoint itemScreenPoint)
+	{
+		return popupScreenBounds.X >= itemScreenPoint.X
+			? -SubmenuOverlap
+			: SubmenuOverlap;
+	}
+
+	internal static (double HorizontalOffset, double VerticalOffset) CalculateSubmenuPopupOffsets(
+		PixelRect popupScreenBounds,
+		PixelRect workingArea,
+		PixelPoint itemScreenPoint)
+	{
+		var horizontalOffset = CalculateSubmenuHorizontalOffset(popupScreenBounds, itemScreenPoint);
+		if (popupScreenBounds.Right + horizontalOffset > workingArea.Right)
+		{
+			horizontalOffset -= popupScreenBounds.Right + horizontalOffset - workingArea.Right;
+		}
+
+		if (popupScreenBounds.X + horizontalOffset < workingArea.X)
+		{
+			horizontalOffset += workingArea.X - (popupScreenBounds.X + horizontalOffset);
+		}
+
+		var verticalOffset = 0d;
+		if (popupScreenBounds.Bottom > workingArea.Bottom)
+		{
+			verticalOffset -= popupScreenBounds.Bottom - workingArea.Bottom;
+		}
+
+		if (popupScreenBounds.Y + verticalOffset < workingArea.Y)
+		{
+			verticalOffset += workingArea.Y - (popupScreenBounds.Y + verticalOffset);
+		}
+
+		return (horizontalOffset, verticalOffset);
 	}
 
 	private static void OnLauncherItemPointerPressed(
@@ -208,7 +267,8 @@ public sealed class TrayContextMenuBuilder : ITrayContextMenuBuilder
 
 		return new ContextMenu
 		{
-			ItemsSource = items
+			ItemsSource = items,
+			PlacementConstraintAdjustment = TrayPopupConstraintAdjustment
 		};
 	}
 
