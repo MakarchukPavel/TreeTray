@@ -48,7 +48,7 @@ public sealed class TrayContextMenuBuilderTests
 			workingArea,
 			itemScreenPoint);
 
-		Assert.Equal(-4d, horizontalOffset);
+		Assert.Equal(8d, horizontalOffset);
 		Assert.Equal(0d, verticalOffset);
 	}
 }

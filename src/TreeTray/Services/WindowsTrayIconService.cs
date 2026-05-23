@@ -244,7 +244,9 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 
 	private Action? _openLauncherAction;
 
-	private PixelPoint? _pendingMenuScreenPosition;
+	private PixelPoint? _pendingMenuAnchorPoint;
+
+	private bool _hasPendingMenuRequest;
 
 	private string? _lastTrayActionKey;
 
@@ -387,7 +389,7 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 	private void HandleCallbackMessage(IntPtr wParam, IntPtr lParam)
 	{
 		var eventCode = GetLowWord(lParam);
-		var anchorPoint = new PixelPoint(GetLowWord(wParam), GetHighWord(wParam));
+		var anchorPoint = TryGetCallbackAnchorPoint(eventCode, wParam);
 
 		switch (eventCode)
 		{
@@ -403,7 +405,7 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		}
 	}
 
-	private void HandlePrimaryTrayClick(PixelPoint anchorPoint)
+	private void HandlePrimaryTrayClick(PixelPoint? anchorPoint)
 	{
 		if (_configuration.InvertTrayIconMouseButtons)
 		{
@@ -415,16 +417,16 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 
 		PostTrayAction(
 			"ShowTrayPopupMenu",
-			() => ShowTrayPopupMenu(anchorPoint));
+			() => ShowTrayPopupMenu(anchorPoint, preferAnchorPoint: true));
 	}
 
-	private void HandleSecondaryTrayClick(PixelPoint anchorPoint)
+	private void HandleSecondaryTrayClick(PixelPoint? anchorPoint)
 	{
 		if (_configuration.InvertTrayIconMouseButtons)
 		{
 			PostTrayAction(
 				"ShowTrayPopupMenu",
-				() => ShowTrayPopupMenu(anchorPoint));
+				() => ShowTrayPopupMenu(anchorPoint, preferAnchorPoint: true));
 			return;
 		}
 
@@ -488,7 +490,8 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 
 	private void OpenLauncherWindow(PixelPoint? anchorPoint = null)
 	{
-		_pendingMenuScreenPosition = null;
+		_pendingMenuAnchorPoint = null;
+		_hasPendingMenuRequest = false;
 
 		if (_isLoading)
 		{
@@ -509,14 +512,16 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 
 	private void OpenPendingMenuIfRequested()
 	{
-		if (_pendingMenuScreenPosition is not PixelPoint screenPosition)
+		if (!_hasPendingMenuRequest)
 		{
 			return;
 		}
 
-		_pendingMenuScreenPosition = null;
+		var anchorPoint = _pendingMenuAnchorPoint;
+		_pendingMenuAnchorPoint = null;
+		_hasPendingMenuRequest = false;
 		Dispatcher.UIThread.Post(
-			() => ShowTrayPopupMenu(screenPosition),
+			() => ShowTrayPopupMenu(anchorPoint, preferAnchorPoint: false),
 			Avalonia.Threading.DispatcherPriority.Background);
 	}
 
@@ -654,6 +659,48 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		ref PrivateNotifyIconIdentifier identifier,
 		out PrivateRect iconRectangle);
 
+	internal static bool ShouldUseCallbackAnchorPoint(int eventCode)
+	{
+		return eventCode == WmLButtonUp
+			|| eventCode == WmRButtonUp
+			|| eventCode == NinSelect
+			|| eventCode == NinKeySelect;
+	}
+
+	internal static PixelPoint? TryGetCallbackAnchorPoint(int eventCode, IntPtr wParam)
+	{
+		if (!ShouldUseCallbackAnchorPoint(eventCode))
+		{
+			return null;
+		}
+
+		return new PixelPoint(GetLowWord(wParam), GetHighWord(wParam));
+	}
+
+	internal static PixelPoint ResolvePreferredScreenPosition(
+		PixelPoint? anchorPoint,
+		bool preferAnchorPoint,
+		PixelPoint? trayIconScreenPosition,
+		PixelPoint fallbackCursorPosition)
+	{
+		if (preferAnchorPoint && anchorPoint is PixelPoint preferredAnchorPoint)
+		{
+			return preferredAnchorPoint;
+		}
+
+		if (trayIconScreenPosition is PixelPoint trayIconPosition)
+		{
+			return trayIconPosition;
+		}
+
+		if (anchorPoint is PixelPoint fallbackAnchorPoint)
+		{
+			return fallbackAnchorPoint;
+		}
+
+		return fallbackCursorPosition;
+	}
+
 	private PixelPoint? TryGetCurrentTrayIconScreenPosition()
 	{
 		if (_windowHandle == IntPtr.Zero || !_hasNotifyIcon)
@@ -677,17 +724,12 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		return new PixelPoint(iconRectangle.Left, iconRectangle.Bottom);
 	}
 
-	private PixelPoint ResolveScreenPosition(PixelPoint? anchorPoint)
+	private PixelPoint ResolveScreenPosition(PixelPoint? anchorPoint, bool preferAnchorPoint = false)
 	{
 		var trayIconScreenPosition = TryGetCurrentTrayIconScreenPosition();
-		if (trayIconScreenPosition is not null)
-		{
-			return trayIconScreenPosition.Value;
-		}
 
-		var screenPosition = anchorPoint;
-
-		if (screenPosition is null || (screenPosition.Value.X == 0 && screenPosition.Value.Y == 0))
+		var fallbackCursorPosition = anchorPoint;
+		if (fallbackCursorPosition is null || (fallbackCursorPosition.Value.X == 0 && fallbackCursorPosition.Value.Y == 0))
 		{
 			if (!GetCursorPos(out var cursorPosition))
 			{
@@ -698,19 +740,26 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 				};
 			}
 
-			screenPosition = new PixelPoint(cursorPosition.X, cursorPosition.Y);
+			fallbackCursorPosition = new PixelPoint(cursorPosition.X, cursorPosition.Y);
 		}
 
-		return screenPosition.Value;
+		return ResolvePreferredScreenPosition(
+			anchorPoint,
+			preferAnchorPoint,
+			trayIconScreenPosition,
+			fallbackCursorPosition!.Value);
 	}
 
-	private void ShowTrayPopupMenu(PixelPoint? anchorPoint = null)
+	private void ShowTrayPopupMenu(PixelPoint? anchorPoint = null, bool preferAnchorPoint = false)
 	{
-		var screenPosition = ResolveScreenPosition(anchorPoint);
+		var screenPosition = ResolveScreenPosition(anchorPoint, preferAnchorPoint);
 
 		if (_isLoading)
 		{
-			_pendingMenuScreenPosition = screenPosition;
+			// Recalculate the final menu position when loading completes instead of reusing
+			// a screen point captured while Explorer or another startup tool may still be moving windows.
+			_pendingMenuAnchorPoint = anchorPoint;
+			_hasPendingMenuRequest = true;
 
 			if (!_trayPopupMenuService.IsOpen)
 			{
@@ -748,7 +797,7 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 			return;
 		}
 
-		var shouldOpenPendingMenu = _isLoading && !isLoading && _pendingMenuScreenPosition is not null;
+		var shouldOpenPendingMenu = _isLoading && !isLoading && _hasPendingMenuRequest;
 		if (!shouldOpenPendingMenu)
 		{
 			_trayPopupMenuService.Hide();
