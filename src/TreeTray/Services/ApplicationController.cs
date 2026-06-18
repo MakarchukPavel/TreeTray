@@ -196,7 +196,20 @@ public sealed class ApplicationController : IApplicationController
 		}
 
 		_mainWindow = _serviceProvider.GetRequiredService<Views.MainWindow>();
-		_mainWindow.Icon = _iconService.ApplicationIcon;
+		if (OperatingSystem.IsWindows())
+		{
+			// Do not hand the icon to Avalonia on Windows. Avalonia recreates a scaled HICON from
+			// Window.Icon whenever Windows asks the window for its icon (for example after a DPI change),
+			// and on this Avalonia version that conversion can fault inside the framework and tear down the
+			// process through an uncatchable FailFast. The native icon is applied through WM_SETICON once
+			// the window handle exists instead.
+			_mainWindow.Opened += OnWindowsMainWindowOpened;
+		}
+		else
+		{
+			_mainWindow.Icon = _iconService.ApplicationIcon;
+		}
+
 		_mainWindow.ShowInTaskbar = !Configuration.EnableTrayIcon;
 		_mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
@@ -311,6 +324,8 @@ public sealed class ApplicationController : IApplicationController
 			_mainWindow.Show();
 		}
 
+		ApplyWindowsMainWindowIcon();
+
 		if (Configuration.EnableTrayIcon)
 		{
 			_mainWindow.WindowState = WindowState.Minimized;
@@ -339,6 +354,25 @@ public sealed class ApplicationController : IApplicationController
 	private void OnTrayIconClicked(object? sender, EventArgs eventArgs)
 	{
 		ShowMainWindow();
+	}
+
+	private void OnWindowsMainWindowOpened(object? sender, EventArgs eventArgs)
+	{
+		ApplyWindowsMainWindowIcon();
+	}
+
+	private void ApplyWindowsMainWindowIcon()
+	{
+		if (!OperatingSystem.IsWindows() || _mainWindow is null)
+		{
+			return;
+		}
+
+		var windowHandle = _mainWindow.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+		if (windowHandle != IntPtr.Zero)
+		{
+			_iconService.ApplyWindowsWindowIcon(windowHandle);
+		}
 	}
 
 	private void RaiseStateChanged()
@@ -495,6 +529,7 @@ public sealed class ApplicationController : IApplicationController
 		_mainWindow.ShowInTaskbar = true;
 		_mainWindow.WindowState = WindowState.Normal;
 		_mainWindow.Activate();
+		ApplyWindowsMainWindowIcon();
 	}
 
 	public void Start(Application application)

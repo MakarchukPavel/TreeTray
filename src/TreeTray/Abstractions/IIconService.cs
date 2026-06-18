@@ -16,6 +16,8 @@ public interface IIconService
 
 	#region Methods: Public
 
+	void ApplyWindowsWindowIcon(nint windowHandle);
+
 	nint CreateWindowsTrayIconHandle();
 
 	Bitmap GetEntryIcon(LauncherEntry entry);

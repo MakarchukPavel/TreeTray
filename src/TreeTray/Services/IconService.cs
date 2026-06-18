@@ -18,6 +18,12 @@ public sealed class IconService : IIconService
 
 	private readonly Bitmap _launcherIcon;
 
+	private nint _windowsSmallWindowIconHandle;
+
+	private nint _windowsBigWindowIconHandle;
+
+	private bool _windowsWindowIconHandlesInitialized;
+
 	#endregion
 
 	#region Constructors: Public
@@ -169,6 +175,16 @@ public sealed class IconService : IIconService
 	private const long MacOsPngImageFileType = 4;
 
 	private const double MacOsWorkspaceIconSize = 32d;
+
+	private const uint WmSetIcon = 0x0080;
+
+	private const int IconSmall = 0;
+
+	private const int IconBig = 1;
+
+	private const int WindowsSmallWindowIconSize = 16;
+
+	private const int WindowsBigWindowIconSize = 32;
 
 	#endregion
 
@@ -1284,6 +1300,60 @@ public sealed class IconService : IIconService
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static extern bool DestroyIcon(IntPtr iconHandle);
 
+	[DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+	private static extern IntPtr SendMessage(IntPtr windowHandle, uint message, IntPtr wParam, IntPtr lParam);
+
+	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+	private void ApplyWindowsWindowIconCore(nint windowHandle)
+	{
+		var (smallIconHandle, bigIconHandle) = GetOrCreateWindowsWindowIconHandles();
+
+		if (smallIconHandle != IntPtr.Zero)
+		{
+			SendMessage(windowHandle, WmSetIcon, (IntPtr)IconSmall, smallIconHandle);
+		}
+
+		if (bigIconHandle != IntPtr.Zero)
+		{
+			SendMessage(windowHandle, WmSetIcon, (IntPtr)IconBig, bigIconHandle);
+		}
+	}
+
+	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+	private static nint CreateWindowsWindowIconHandle(System.Drawing.Bitmap sourceBitmap, int iconSize)
+	{
+		using var resizedBitmap = new System.Drawing.Bitmap(sourceBitmap, new System.Drawing.Size(iconSize, iconSize));
+		return resizedBitmap.GetHicon();
+	}
+
+	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+	private (nint SmallIconHandle, nint BigIconHandle) GetOrCreateWindowsWindowIconHandles()
+	{
+		// The window icon handles live for the whole process lifetime because they stay attached to the
+		// main window through WM_SETICON. They are intentionally not destroyed here; the operating system
+		// reclaims them when the process exits.
+		if (_windowsWindowIconHandlesInitialized)
+		{
+			return (_windowsSmallWindowIconHandle, _windowsBigWindowIconHandle);
+		}
+
+		try
+		{
+			using var stream = AssetLoader.Open(new Uri("avares://TreeTray/Assets/AppIcon.png"));
+			using var sourceBitmap = new System.Drawing.Bitmap(stream);
+			_windowsSmallWindowIconHandle = CreateWindowsWindowIconHandle(sourceBitmap, WindowsSmallWindowIconSize);
+			_windowsBigWindowIconHandle = CreateWindowsWindowIconHandle(sourceBitmap, WindowsBigWindowIconSize);
+		}
+		catch
+		{
+			_windowsSmallWindowIconHandle = IntPtr.Zero;
+			_windowsBigWindowIconHandle = IntPtr.Zero;
+		}
+
+		_windowsWindowIconHandlesInitialized = true;
+		return (_windowsSmallWindowIconHandle, _windowsBigWindowIconHandle);
+	}
+
 	#endregion
 
 	#region Struct: WindowsShellFileInfo
@@ -1322,6 +1392,21 @@ public sealed class IconService : IIconService
 	#endregion
 
 	#region Methods: Public
+
+	public void ApplyWindowsWindowIcon(nint windowHandle)
+	{
+		// Set the Windows taskbar and title-bar icon natively instead of through Avalonia's Window.Icon.
+		// Avalonia rebuilds a scaled HICON from the managed bitmap every time Windows requests the window
+		// icon (for example after a DPI change), and on this Avalonia version that conversion can raise a
+		// hardware exception inside the framework and terminate the process through FailFast, which managed
+		// code cannot catch. Sending the icon with WM_SETICON keeps Avalonia out of that path.
+		if (!OperatingSystem.IsWindows() || windowHandle == IntPtr.Zero)
+		{
+			return;
+		}
+
+		ApplyWindowsWindowIconCore(windowHandle);
+	}
 
 	[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 	public nint CreateWindowsTrayIconHandle()
