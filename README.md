@@ -127,6 +127,9 @@ Tray click behavior:
 - `InvertTrayIconMouseButtons` changes the tray icon or menu bar click behavior on Windows and macOS.
 - When `false`, left click opens the launcher menu and right click opens the main window.
 - When `true`, left click opens the main window and right click opens the launcher menu.
+- `OpenMainWindowOnTrayDoubleClick` switches the Windows tray icon to a double-click workflow.
+- When `true`, a double click opens the main window while a single left or right click opens the launcher menu. This overrides `InvertTrayIconMouseButtons`.
+- When `false`, the click behavior follows `InvertTrayIconMouseButtons`. The setting currently applies to the Windows tray icon.
 
 Example:
 
@@ -147,6 +150,8 @@ Example:
   <EnableCtrlLeftClickToLaunchFolderChildren>true</EnableCtrlLeftClickToLaunchFolderChildren>
   <!-- Optional tray or menu bar click inversion on Windows and macOS. -->
   <InvertTrayIconMouseButtons>false</InvertTrayIconMouseButtons>
+  <!-- When true, double-click the Windows tray icon to open the main window; single clicks open the menu. -->
+  <OpenMainWindowOnTrayDoubleClick>false</OpenMainWindowOnTrayDoubleClick>
   <!-- Optional custom tray glyph. -->
   <TrayIconGlyph>W</TrayIconGlyph>
   <!-- Optional generated tray glyph color. -->

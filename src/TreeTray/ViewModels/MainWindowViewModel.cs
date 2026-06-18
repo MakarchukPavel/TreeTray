@@ -24,6 +24,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
 	private bool _invertTrayIconMouseButtons;
 
+	private bool _openMainWindowOnTrayDoubleClick;
+
 	private string _launchersDirectory = string.Empty;
 
 	private string _headerTitle = "TreeTray";
@@ -137,6 +139,25 @@ public sealed class MainWindowViewModel : ViewModelBase
 			PersistRuntimeSettings();
 		}
 	}
+
+	public bool IsTrayIconMouseButtonInversionEnabled => SupportsTrayIconMouseButtonInversion && !OpenMainWindowOnTrayDoubleClick;
+
+	public bool OpenMainWindowOnTrayDoubleClick
+	{
+		get => _openMainWindowOnTrayDoubleClick;
+		set
+		{
+			if (!SetProperty(ref _openMainWindowOnTrayDoubleClick, value))
+			{
+				return;
+			}
+
+			OnPropertyChanged(nameof(IsTrayIconMouseButtonInversionEnabled));
+			PersistRuntimeSettings();
+		}
+	}
+
+	public bool SupportsTrayIconDoubleClickToOpen => OperatingSystem.IsWindows();
 
 	public bool EnableCtrlLeftClickToLaunchFolderChildren
 	{
@@ -421,6 +442,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 			EnableTrayIcon = IsTrayIconEnabled,
 			InvertTrayIconMouseButtons = InvertTrayIconMouseButtons,
 			LaunchersDirectory = _applicationController.Configuration.LaunchersDirectory,
+			OpenMainWindowOnTrayDoubleClick = OpenMainWindowOnTrayDoubleClick,
 			StartWithOperatingSystem = StartWithOperatingSystem,
 			ThemeMode = SelectedThemeMode,
 			TrayIconBackgroundColor = TrayIconBackgroundColor,
@@ -450,6 +472,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 			IsTaskbarDockIconEnabled = _applicationController.Configuration.EnableTaskbarDockIcon;
 			EnableCtrlLeftClickToLaunchFolderChildren = _applicationController.Configuration.EnableCtrlLeftClickToLaunchFolderChildren;
 			InvertTrayIconMouseButtons = _applicationController.Configuration.InvertTrayIconMouseButtons;
+			OpenMainWindowOnTrayDoubleClick = _applicationController.Configuration.OpenMainWindowOnTrayDoubleClick;
 			StartWithOperatingSystem = _applicationController.Configuration.StartWithOperatingSystem;
 			SelectedThemeMode = _applicationController.Configuration.ThemeMode;
 			TrayIconGlyph = _applicationController.Configuration.TrayIconGlyph;

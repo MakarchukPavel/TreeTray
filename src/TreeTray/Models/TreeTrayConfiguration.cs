@@ -16,6 +16,8 @@ public sealed class TreeTrayConfiguration
 
 	public string LaunchersDirectory { get; set; } = string.Empty;
 
+	public bool OpenMainWindowOnTrayDoubleClick { get; set; }
+
 	public bool StartWithOperatingSystem { get; set; }
 
 	public string ThemeMode { get; set; } = ApplicationThemeModes.System;

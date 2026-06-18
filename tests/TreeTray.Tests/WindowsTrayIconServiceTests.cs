@@ -7,12 +7,47 @@ public sealed class WindowsTrayIconServiceTests
 {
 	[Theory]
 	[InlineData(0x0202)]
+	[InlineData(0x0203)]
 	[InlineData(0x0205)]
 	[InlineData(0x0400)]
 	[InlineData(0x0401)]
 	public void ShouldUseCallbackAnchorPoint_ReturnsTrueForAnchorAwareEvents(int eventCode)
 	{
 		Assert.True(WindowsTrayIconService.ShouldUseCallbackAnchorPoint(eventCode));
+	}
+
+	[Fact]
+	public void IsDoubleClickEvent_ReturnsTrueOnlyForLeftButtonDoubleClick()
+	{
+		Assert.True(WindowsTrayIconService.IsDoubleClickEvent(0x0203));
+		Assert.False(WindowsTrayIconService.IsDoubleClickEvent(0x0202));
+		Assert.False(WindowsTrayIconService.IsDoubleClickEvent(0x0205));
+	}
+
+	[Theory]
+	// Double-click-to-open mode: every single click opens the menu regardless of inversion or button.
+	[InlineData(true, false, true, true)]
+	[InlineData(true, false, false, true)]
+	[InlineData(true, true, true, true)]
+	[InlineData(true, true, false, true)]
+	// Default mode: primary click opens the menu, secondary opens the main window.
+	[InlineData(false, false, true, true)]
+	[InlineData(false, false, false, false)]
+	// Inverted mode: primary click opens the main window, secondary opens the menu.
+	[InlineData(false, true, true, false)]
+	[InlineData(false, true, false, true)]
+	public void ShouldShowMenuForSingleClick_ResolvesExpectedAction(
+		bool openMainWindowOnTrayDoubleClick,
+		bool invertTrayIconMouseButtons,
+		bool isPrimaryClick,
+		bool expectedShowMenu)
+	{
+		var showMenu = WindowsTrayIconService.ShouldShowMenuForSingleClick(
+			openMainWindowOnTrayDoubleClick,
+			invertTrayIconMouseButtons,
+			isPrimaryClick);
+
+		Assert.Equal(expectedShowMenu, showMenu);
 	}
 
 	[Fact]

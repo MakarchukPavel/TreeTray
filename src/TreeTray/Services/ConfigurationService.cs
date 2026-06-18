@@ -63,6 +63,7 @@ public sealed class ConfigurationService : IConfigurationService
 			EnableTaskbarDockIcon = false,
 			EnableCtrlLeftClickToLaunchFolderChildren = true,
 			InvertTrayIconMouseButtons = false,
+			OpenMainWindowOnTrayDoubleClick = false,
 			StartWithOperatingSystem = false,
 			ThemeMode = ApplicationThemeModes.System,
 			TrayIconBackgroundColor = string.Empty,
@@ -100,6 +101,7 @@ public sealed class ConfigurationService : IConfigurationService
 			EnableTaskbarDockIcon = !enableTrayIcon,
 			EnableCtrlLeftClickToLaunchFolderChildren = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.EnableCtrlLeftClickToLaunchFolderChildren), defaultConfiguration.EnableCtrlLeftClickToLaunchFolderChildren),
 			InvertTrayIconMouseButtons = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.InvertTrayIconMouseButtons), defaultConfiguration.InvertTrayIconMouseButtons),
+			OpenMainWindowOnTrayDoubleClick = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.OpenMainWindowOnTrayDoubleClick), defaultConfiguration.OpenMainWindowOnTrayDoubleClick),
 			StartWithOperatingSystem = GetBooleanValue(rootElement, nameof(TreeTrayConfiguration.StartWithOperatingSystem), defaultConfiguration.StartWithOperatingSystem),
 			ThemeMode = GetThemeModeValue(rootElement, defaultConfiguration),
 			TrayIconBackgroundColor = GetStringValue(rootElement, nameof(TreeTrayConfiguration.TrayIconBackgroundColor), defaultConfiguration.TrayIconBackgroundColor),
@@ -164,6 +166,12 @@ public sealed class ConfigurationService : IConfigurationService
 			nameof(TreeTrayConfiguration.InvertTrayIconMouseButtons),
 			configuration.InvertTrayIconMouseButtons.ToString().ToLowerInvariant(),
 			"When true, TreeTray inverts the tray or menu bar click behavior on Windows and macOS: left click opens the main window and right click opens the launcher menu. When false, left click opens the launcher menu and right click opens the main window. Accepted values: true, false. Default: false.");
+
+		WriteSetting(
+			writer,
+			nameof(TreeTrayConfiguration.OpenMainWindowOnTrayDoubleClick),
+			configuration.OpenMainWindowOnTrayDoubleClick.ToString().ToLowerInvariant(),
+			"When true, TreeTray opens the main window on a double click of the tray icon, while a single left or right click opens the launcher menu. This overrides InvertTrayIconMouseButtons. Currently applies to the Windows tray icon. Accepted values: true, false. Default: false.");
 
 		WriteSetting(
 			writer,

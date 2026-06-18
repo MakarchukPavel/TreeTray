@@ -100,7 +100,12 @@
           <CheckBox
               Content="Invert tray or menu bar left and right click actions"
               IsChecked="{Binding InvertTrayIconMouseButtons, Mode=TwoWay}"
+              IsEnabled="{Binding IsTrayIconMouseButtonInversionEnabled}"
               IsVisible="{Binding SupportsTrayIconMouseButtonInversion}" />
+          <CheckBox
+              Content="Open the main window on a tray icon double click (single left or right click opens the menu)"
+              IsChecked="{Binding OpenMainWindowOnTrayDoubleClick, Mode=TwoWay}"
+              IsVisible="{Binding SupportsTrayIconDoubleClickToOpen}" />
 
           <Border Background="{DynamicResource AppSettingsPanelBackgroundBrush}" CornerRadius="12" Padding="14">
             <StackPanel Spacing="10">

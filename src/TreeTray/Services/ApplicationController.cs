@@ -119,6 +119,7 @@ public sealed class ApplicationController : IApplicationController
 			EnableCtrlLeftClickToLaunchFolderChildren = configuration.EnableCtrlLeftClickToLaunchFolderChildren,
 			InvertTrayIconMouseButtons = configuration.InvertTrayIconMouseButtons,
 			LaunchersDirectory = configuration.LaunchersDirectory,
+			OpenMainWindowOnTrayDoubleClick = configuration.OpenMainWindowOnTrayDoubleClick,
 			StartWithOperatingSystem = configuration.StartWithOperatingSystem,
 			ThemeMode = ApplicationThemeModes.Normalize(configuration.ThemeMode),
 			TrayIconBackgroundColor = configuration.TrayIconBackgroundColor,

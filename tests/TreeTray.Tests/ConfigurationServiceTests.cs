@@ -23,6 +23,41 @@ public sealed class ConfigurationServiceTests
 	}
 
 	[Fact]
+	public void Load_WhenConfigDoesNotExist_CreatesDefaultConfigWithTrayDoubleClickDisabled()
+	{
+		using var fixture = new TestApplicationPaths();
+		var service = new ConfigurationService(fixture);
+
+		var configuration = service.Load();
+
+		Assert.False(configuration.OpenMainWindowOnTrayDoubleClick);
+		var xml = File.ReadAllText(fixture.ConfigurationFilePath);
+		Assert.Contains("<OpenMainWindowOnTrayDoubleClick>false</OpenMainWindowOnTrayDoubleClick>", xml, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Load_ReadsTrayDoubleClickFlagFromExistingConfiguration()
+	{
+		using var fixture = new TestApplicationPaths();
+		Directory.CreateDirectory(fixture.ConfigurationDirectory);
+		File.WriteAllText(
+			fixture.ConfigurationFilePath,
+			"""
+			<?xml version="1.0" encoding="utf-8"?>
+			<TreeTrayConfiguration>
+			  <LaunchersDirectory>Launchers</LaunchersDirectory>
+			  <EnableTrayIcon>true</EnableTrayIcon>
+			  <OpenMainWindowOnTrayDoubleClick>true</OpenMainWindowOnTrayDoubleClick>
+			</TreeTrayConfiguration>
+			""");
+		var service = new ConfigurationService(fixture);
+
+		var configuration = service.Load();
+
+		Assert.True(configuration.OpenMainWindowOnTrayDoubleClick);
+	}
+
+	[Fact]
 	public void Load_ReadsCtrlClickFlagFromExistingConfiguration()
 	{
 		using var fixture = new TestApplicationPaths();

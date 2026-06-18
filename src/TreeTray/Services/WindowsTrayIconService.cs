@@ -212,6 +212,8 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 
 	private const int WmDestroy = 0x0002;
 
+	private const int WmLButtonDblClk = 0x0203;
+
 	private const int WmLButtonUp = 0x0202;
 
 	private const int WmRButtonUp = 0x0205;
@@ -251,6 +253,10 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 	private string? _lastTrayActionKey;
 
 	private long _lastTrayActionTimestamp;
+
+	private long _pendingTrayMenuClickGeneration;
+
+	private long _suppressSingleTrayClickUntil;
 
 	private LauncherSnapshot _snapshot = LauncherSnapshot.Empty;
 
@@ -396,33 +402,29 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 			case WmLButtonUp:
 			case NinSelect:
 			case NinKeySelect:
-				HandlePrimaryTrayClick(anchorPoint);
+				HandleSingleTrayClick(anchorPoint, isPrimaryClick: true);
 				break;
 			case WmContextMenu:
 			case WmRButtonUp:
-				HandleSecondaryTrayClick(anchorPoint);
+				HandleSingleTrayClick(anchorPoint, isPrimaryClick: false);
+				break;
+			case WmLButtonDblClk:
+				HandleTrayDoubleClick(anchorPoint);
 				break;
 		}
 	}
 
-	private void HandlePrimaryTrayClick(PixelPoint? anchorPoint)
+	private void HandleSingleTrayClick(PixelPoint? anchorPoint, bool isPrimaryClick)
 	{
-		if (_configuration.InvertTrayIconMouseButtons)
+		if (_configuration.OpenMainWindowOnTrayDoubleClick)
 		{
-			PostTrayAction(
-				"OpenLauncherWindow",
-				() => OpenLauncherWindow(anchorPoint));
+			// Both single clicks open the launcher menu in this mode. Defer it by the system double-click
+			// interval so a following double-click can cancel the menu and open the main window instead.
+			ScheduleDeferredTrayMenu(anchorPoint);
 			return;
 		}
 
-		PostTrayAction(
-			"ShowTrayPopupMenu",
-			() => ShowTrayPopupMenu(anchorPoint, preferAnchorPoint: true));
-	}
-
-	private void HandleSecondaryTrayClick(PixelPoint? anchorPoint)
-	{
-		if (_configuration.InvertTrayIconMouseButtons)
+		if (ShouldShowMenuForSingleClick(false, _configuration.InvertTrayIconMouseButtons, isPrimaryClick))
 		{
 			PostTrayAction(
 				"ShowTrayPopupMenu",
@@ -433,6 +435,51 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		PostTrayAction(
 			"OpenLauncherWindow",
 			() => OpenLauncherWindow(anchorPoint));
+	}
+
+	private void HandleTrayDoubleClick(PixelPoint? anchorPoint)
+	{
+		if (!_configuration.OpenMainWindowOnTrayDoubleClick)
+		{
+			return;
+		}
+
+		// Cancel the menu scheduled by the first click of this double-click and ignore the trailing
+		// single-click notifications that Windows still posts after WM_LBUTTONDBLCLK.
+		Interlocked.Increment(ref _pendingTrayMenuClickGeneration);
+		Volatile.Write(ref _suppressSingleTrayClickUntil, Environment.TickCount64 + GetDoubleClickTime());
+
+		PostTrayAction(
+			"OpenLauncherWindow",
+			() => OpenLauncherWindow(anchorPoint));
+	}
+
+	private void ScheduleDeferredTrayMenu(PixelPoint? anchorPoint)
+	{
+		if (Environment.TickCount64 < Volatile.Read(ref _suppressSingleTrayClickUntil))
+		{
+			return;
+		}
+
+		var clickGeneration = Interlocked.Increment(ref _pendingTrayMenuClickGeneration);
+		var doubleClickInterval = (int)GetDoubleClickTime();
+
+		_ = Task.Delay(doubleClickInterval).ContinueWith(
+			_ =>
+			{
+				if (Volatile.Read(ref _pendingTrayMenuClickGeneration) != clickGeneration)
+				{
+					return;
+				}
+
+				if (Environment.TickCount64 < Volatile.Read(ref _suppressSingleTrayClickUntil))
+				{
+					return;
+				}
+
+				Dispatcher.UIThread.Post(() => ShowTrayPopupMenu(anchorPoint, preferAnchorPoint: true));
+			},
+			TaskScheduler.Default);
 	}
 
 	private void MessageLoopThreadMain()
@@ -571,6 +618,9 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static extern bool GetCursorPos(out PrivatePoint point);
 
+	[DllImport("user32.dll")]
+	private static extern uint GetDoubleClickTime();
+
 	[DllImport("user32.dll", SetLastError = true)]
 	private static extern int GetMessage(out PrivateMessage message, IntPtr windowHandle, uint messageFilterMin, uint messageFilterMax);
 
@@ -588,6 +638,7 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 			EnableCtrlLeftClickToLaunchFolderChildren = configuration.EnableCtrlLeftClickToLaunchFolderChildren,
 			InvertTrayIconMouseButtons = configuration.InvertTrayIconMouseButtons,
 			LaunchersDirectory = configuration.LaunchersDirectory,
+			OpenMainWindowOnTrayDoubleClick = configuration.OpenMainWindowOnTrayDoubleClick,
 			StartWithOperatingSystem = configuration.StartWithOperatingSystem,
 			TrayIconBackgroundColor = configuration.TrayIconBackgroundColor,
 			TrayIconForegroundColor = configuration.TrayIconForegroundColor,
@@ -659,9 +710,22 @@ public sealed class WindowsTrayIconService : IWindowsTrayIconService
 		ref PrivateNotifyIconIdentifier identifier,
 		out PrivateRect iconRectangle);
 
+	internal static bool IsDoubleClickEvent(int eventCode)
+	{
+		return eventCode == WmLButtonDblClk;
+	}
+
+	internal static bool ShouldShowMenuForSingleClick(bool openMainWindowOnTrayDoubleClick, bool invertTrayIconMouseButtons, bool isPrimaryClick)
+	{
+		// When double-click-to-open is enabled, every single click opens the launcher menu.
+		// Otherwise the primary click opens the menu unless the buttons are inverted.
+		return openMainWindowOnTrayDoubleClick || (isPrimaryClick ^ invertTrayIconMouseButtons);
+	}
+
 	internal static bool ShouldUseCallbackAnchorPoint(int eventCode)
 	{
 		return eventCode == WmLButtonUp
+			|| eventCode == WmLButtonDblClk
 			|| eventCode == WmRButtonUp
 			|| eventCode == NinSelect
 			|| eventCode == NinKeySelect;
